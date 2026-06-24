@@ -1,9 +1,13 @@
 name = "SGM"
 uuid = "1227124d-628d-4ffb-bc33-67815134cfb3"
-authors = ["maxined2 <dussault.maxine@icloud.com> and contributors"]
 version = "0.1.0"
+authors = ["maxined2 <dussault.maxine@icloud.com> and contributors"]
+
+[deps]
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 
 [compat]
+JuMP = "1.30.1"
 julia = "1.10.10"
 
 [extras]
