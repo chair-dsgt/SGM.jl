@@ -1,5 +1,7 @@
 module SGM
 
-# Write your package code here.
+using JuMP
+
+include("IPG_structures.jl")
 
 end
