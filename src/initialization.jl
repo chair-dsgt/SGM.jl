@@ -22,6 +22,9 @@ function initialize_player_strategy(id::Int, model::JuMP.Model, optimizer_factor
         variable_values[variable] = value
     end
 
+    # TODO: this implicitly relies on the variable order given by JuMP.all_variables to
+    # build the strategy. This is not guaranteed to be consistent over different moments of
+    # time. We should think about another way to preserve order. Related to: https://discourse.julialang.org/t/getting-jump-model-variables-and-containers-in-order-of-creation/127245/4?u=brunompacheco
     return PureStrategy(id, variable_values)
 end
 
