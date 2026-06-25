@@ -1,6 +1,3 @@
-using SGM
-using Test
+using TestItemRunner
 
-@testset "SGM.jl" begin
-    # Write your tests here.
-end
+@run_package_tests
