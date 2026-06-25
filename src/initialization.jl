@@ -3,6 +3,8 @@ function empty_strategy_sample(num_players::Int)
 end
 
 function initialize_player_strategy(id::Int, model::JuMP.Model, optimizer_factory)::PureStrategy
+    # TODO: when we call `all_variables` on a player's model, we get all JuMP variables,
+    # including parameters, which represent other players' variables.
     variables = JuMP.all_variables(model)
     values = JuMP.start_value.(variables)
 
