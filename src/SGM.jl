@@ -8,6 +8,7 @@ include("IPG_functions.jl")
 include("optimizer.jl")
 include("initialization.jl")
 include("polymatrix_game.jl")
+include("solve.jl")
 
 
 """
