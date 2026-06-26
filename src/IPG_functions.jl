@@ -1,6 +1,6 @@
 # Temporary code for some general IPG functions before IPG.jl is implemented
 
-function compute_payoff_at_profile(player_id::Int, player_model::JuMP.Model, profile::Profile, var_to_param_map::Dict{JuMP.VariableRef, JuMP.VariableRef})::Float64
+function compute_payoff_at_profile(player_id::Int, player_model::JuMP.Model, profile::AbstractVector{<:PureStrategy}, var_to_param_map::Dict{JuMP.VariableRef, JuMP.VariableRef})::Float64
     payoff_function = JuMP.objective_function(player_model)
 
     assignments = copy(profile[player_id].variable_values)

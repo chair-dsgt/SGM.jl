@@ -1,6 +1,7 @@
 module SGM
 
 using JuMP
+using NormalGames
 
 include("IPG_structures.jl") 
 include("IPG_functions.jl")
@@ -33,6 +34,7 @@ function optimize!(optimizer::Optimizer, model::IPGModel; enumeration::Bool = fa
 
     ### Step 1: Initialization of sampled game
     sampled_strategies = initialize_strategies(players, num_players, optimizer.best_response_optimizer)
+    sampled_game = PolymatrixSampledGame(model, sampled_strategies)
 
     ### Step 2: Solve sampled game
 
