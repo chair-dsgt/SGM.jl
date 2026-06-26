@@ -12,11 +12,16 @@ mutable struct Optimizer <: IPGOptimizer
     end
 end
 
-function supports_enumeration(::Optimizer)
-    return false 
-end
+function supports_enumeration(::Optimizer)::Bool return false end
 
-function get_equilibrium(optimizer::Optimizer)
+"""
+    get_equilibrium(optimizer::SGM.Optimizer)::Profile
+
+Return an equilibrium stored in `optimizer`.
+
+This function can only be called after `optimize!` has been called.
+"""
+function get_equilibrium(optimizer::Optimizer)::Profile
     if optimizer.equilibrium === nothing
         error("No equilibrium is available; find_equilibrium! must be called first")
     end
@@ -24,6 +29,11 @@ function get_equilibrium(optimizer::Optimizer)
     return optimizer.equilibrium
 end
 
+"""
+    get_termination_status(optimizer::SGM.Optimizer)::IPG.TerminationStatusCode
+
+Return an `IPG.TerminationStatusCode` describing why the SGM solver stopped.
+"""
 function get_termination_status(optimizer::Optimizer)::TerminationStatusCode
     return optimizer.termination_status
 end

@@ -9,8 +9,17 @@ include("initialization.jl")
 include("polymatrix_game.jl")
 
 
+"""
+    optimize!(optimizer::SGM.Optimizer, model::IPGModel; enumeration::Bool = false)::Nothing
 
-function optimize!(optimizer::Optimizer, model::IPGModel; enumeration::Bool = false)
+Run the IPG solution algorithm implemented by `optimizer` on the IPG model `model`.
+
+If `enumeration` is `false`, the optimizer searches for one equilibrium. If `enumeration` is `true`, the optimizer searches for all equilibria. 
+In that case, the optimizer must support equilibria enumeration. 
+
+The result is stored in the optimizer and can be retrieved using `get_equilibrium`.
+"""
+function optimize!(optimizer::Optimizer, model::IPGModel; enumeration::Bool = false)::Nothing
     if enumeration
         throw(ArgumentError("SGM.Optimizer does not support equilibria enumeration.")) 
     end
