@@ -1,5 +1,8 @@
 # Temporary code for some general IPG functions before IPG.jl is implemented
 
+# TODO: add tests for compute_payoff_at_profile
+
+# TODO: refactor this function with a (game,player_id,profile) interface
 function compute_payoff_at_profile(player_id::Int, player_model::JuMP.Model, profile::AbstractVector{<:PureStrategy}, var_to_param_map::Dict{JuMP.VariableRef, JuMP.VariableRef})::Float64
     payoff_function = JuMP.objective_function(player_model)
 
