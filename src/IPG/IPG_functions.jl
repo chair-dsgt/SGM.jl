@@ -5,7 +5,7 @@
 """
     compute_payoff_at_profile(game::IPGModel, player_id::Int, profile::AbstractVector{<:PureStrategy})::Float64
 
-Compute player `player_id`'s payoff at the profile `profile`.
+Compute player `player_id`'s payoff at the pure profile `profile`.
 """
 function compute_payoff_at_profile(game::IPGModel, player_id::Int, profile::AbstractVector{<:PureStrategy})::Float64
     player_model = game.players[player_id]
@@ -28,6 +28,33 @@ function compute_payoff_at_profile(game::IPGModel, player_id::Int, profile::Abst
 
     payoff_value = JuMP.value(get_assigned_value, payoff_function)
     return Float64(payoff_value)
+end
+
+"""
+    compute_payoff_at_profile(game::IPGModel, player_id::Int, profile::AbstractVector{<:Strategy})::Float64
+
+Compute player `player_id`'s expected payoff at the profile `profile` if `profile` has atleast one mixed strategy.
+Otherwise, the `compute_payoff_at_profile` for pure profiles is called.
+"""
+function compute_payoff_at_profile(game::IPGModel, player_id::Int, profile::AbstractVector{<:Strategy})::Float64
+    if all(strategy -> strategy isa PureStrategy, profile) # Pure profile
+        pure_profile = PureStrategy[strategy for strategy in profile]
+        return compute_payoff_at_profile(game, player_id, pure_profile)
+    end
+
+    # Expected payoff:
+    expectation = 0.0
+    supports = [strategy isa PureStrategy ? [strategy] : strategy.supp for strategy in profile]
+    probabilities = [strategy isa PureStrategy ? [1.0] : strategy.probs for strategy in profile]
+
+    for (probs, strats) in zip(Iterators.product(probabilities...), Iterators.product(supports...))
+        prob = prod(probs)
+        pure_profile = PureStrategy[strats...]
+
+        expectation += prob * compute_payoff_at_profile(game, player_id, pure_profile)
+    end
+    
+    return expectation
 end
 
 """
