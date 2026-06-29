@@ -50,3 +50,5 @@ function negative_polymatrix_preprocessing!(polymatrix::Polymatrix)::Polymatrix
     end
     return polymatrix
 end
+
+solve = solve_PNS  # default value
