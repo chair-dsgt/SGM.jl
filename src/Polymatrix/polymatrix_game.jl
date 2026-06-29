@@ -8,12 +8,11 @@ mutable struct PolymatrixSampledGame
 end
 
 function PolymatrixSampledGame(model::IPGModel, strategies::Vector{Vector{PureStrategy}})::PolymatrixSampledGame
-    return PolymatrixSampledGame(strategies, get_polymatrix(model.players, strategies, model.var_to_param_maps))
+    return PolymatrixSampledGame(strategies, get_polymatrix(model, strategies))
 end
 
 # TODO: add tests for the function below
-function get_polymatrix_twoplayers(players::Vector{JuMP.Model}, strategies::Vector{Vector{PureStrategy}}, 
-                                var_to_param_maps::Vector{Dict{JuMP.VariableRef, JuMP.VariableRef}})::Polymatrix
+function get_polymatrix_twoplayers(game::IPGModel, strategies::Vector{Vector{PureStrategy}})::Polymatrix
     # Initialization
     polymatrix = Polymatrix()
     polymatrix[(1,1)] = zeros(length(strategies[1]), length(strategies[1]))
@@ -24,19 +23,19 @@ function get_polymatrix_twoplayers(players::Vector{JuMP.Model}, strategies::Vect
     for i1 in eachindex(strategies[1])
         for i2 in eachindex(strategies[2])
             profile = [strategies[1][i1], strategies[2][i2]]
-            polymatrix[(1,2)][i1,i2] = compute_payoff_at_profile(1, players[1], profile, var_to_param_maps[1])
-            polymatrix[(2,1)][i2,i1] = compute_payoff_at_profile(2, players[2], profile, var_to_param_maps[2])
+            polymatrix[(1,2)][i1,i2] = compute_payoff_at_profile(game, 1, profile)
+            polymatrix[(2,1)][i2,i1] = compute_payoff_at_profile(game, 2, profile)
         end
     end
 
     return polymatrix
 end
 
-function get_polymatrix(players::Vector{JuMP.Model}, strategies::Vector{Vector{PureStrategy}}, var_to_param_maps::Vector{Dict{JuMP.VariableRef, JuMP.VariableRef}})::Polymatrix
+function get_polymatrix(game::IPGModel, strategies::Vector{Vector{PureStrategy}})::Polymatrix
     if length(players) == 2
-        return get_polymatrix_twoplayers(players, strategies, var_to_param_maps)
+        return get_polymatrix_twoplayers(game, strategies)
     else
         # TODO: get_polymatrix_bilateral
-        
+        error("Polymatrix bilateral games are not implemented yet")
     end
 end

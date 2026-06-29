@@ -3,12 +3,12 @@ module SGM
 using JuMP
 using NormalGames
 
-include("IPG_structures.jl") 
-include("IPG_functions.jl")
+include("IPG/IPG_structures.jl") 
+include("IPG/IPG_functions.jl")
 include("optimizer.jl")
 include("initialization.jl")
-include("polymatrix_game.jl")
-include("solve.jl")
+include("Polymatrix/polymatrix_game.jl")
+include("Polymatrix/solve.jl")
 
 
 """
@@ -26,7 +26,7 @@ function optimize!(optimizer::Optimizer, model::IPGModel; enumeration::Bool = fa
         throw(ArgumentError("SGM.Optimizer does not support equilibria enumeration.")) 
     end
 
-    optimizer.termination_status = SOLVE_NOT_CALLED
+    optimizer.termination_status = INTERRUPTED
     optimizer.equilibrium = nothing
     players = model.players
     num_players = length(players)

@@ -1,15 +1,3 @@
-# TODO: move to IPG
-"""
-    empty_strategy_sample(num_players::Int)
-
-Create an empty strategy sample for `num_players` players.
-
-The returned vector contains an empty `PureStrategy` vector per player.
-"""
-function empty_strategy_sample(num_players::Int)::Vector{Vector{PureStrategy}}
-    [PureStrategy[] for _ in 1:num_players]
-end
-
 """
     initialize_player_strategy(id::Int, model::JuMP.Model, optimizer_factory)::PureStrategy
 
@@ -20,7 +8,7 @@ player's model `model` is solved as a feasibility problem using `optimizer_facto
 variable values are used.
 """
 function initialize_player_strategy(id::Int, model::JuMP.Model, optimizer_factory)::PureStrategy
-    variables = filter((var) -> !JuMP.is_parameter(var), JuMP.all_variables(model))
+    variables = get_player_variables(model)
     values = JuMP.start_value.(variables)
 
     if nothing in values # solve feasibility problem
@@ -41,6 +29,7 @@ function initialize_player_strategy(id::Int, model::JuMP.Model, optimizer_factor
 
     return PureStrategy(id, variable_values)
 end
+
 
 """
     initialize_strategies(players::Vector{JuMP.Model}, num_players::Int, optimizer_factory)::Vector{Vector{PureStrategy}}
