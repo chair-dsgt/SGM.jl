@@ -2,6 +2,7 @@ module SGM
 
 using JuMP
 using NormalGames
+using Random
 
 include("IPG/IPG_structures.jl") 
 include("IPG/IPG_functions.jl")
@@ -9,6 +10,7 @@ include("optimizer.jl")
 include("initialization.jl")
 include("Polymatrix/polymatrix_game.jl")
 include("Polymatrix/solve.jl")
+include("player_order.jl")
 
 
 """
@@ -42,8 +44,8 @@ function optimize!(optimizer::Optimizer, model::IPGModel;
     payoff_improvements = Vector{Tuple{Int,Float64}}()
     for iter in 1:max_iter
         ### Step 2: Solve sampled game
-        candidate_equlibrium = solve(sampled_game, optimizer_factory)
-        push!(candidate_equilibria, candidate_equlibrium)
+        candidate_equilibrium = solve(sampled_game, optimizer_factory)
+        push!(candidate_equilibria, candidate_equilibrium)
 
         ### Step 3: Termination (deviation)
 
