@@ -1,3 +1,5 @@
+# TODO: refactor this into a submodule of SGM
+
 const Polymatrix = Dict{Tuple{Int, Int}, Matrix{Float64}} 
 
 mutable struct PolymatrixSampledGame
@@ -9,6 +11,7 @@ function PolymatrixSampledGame(model::IPGModel, strategies::Vector{Vector{PureSt
     return PolymatrixSampledGame(strategies, get_polymatrix(model.players, strategies, model.var_to_param_maps))
 end
 
+# TODO: add tests for the function below
 function get_polymatrix_twoplayers(players::Vector{JuMP.Model}, strategies::Vector{Vector{PureStrategy}}, 
                                 var_to_param_maps::Vector{Dict{JuMP.VariableRef, JuMP.VariableRef}})::Polymatrix
     # Initialization
@@ -34,5 +37,6 @@ function get_polymatrix(players::Vector{JuMP.Model}, strategies::Vector{Vector{P
         return get_polymatrix_twoplayers(players, strategies, var_to_param_maps)
     else
         # TODO: get_polymatrix_bilateral
+        
     end
 end
