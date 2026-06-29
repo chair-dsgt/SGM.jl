@@ -3,16 +3,16 @@ mutable struct Optimizer <: IPGOptimizer
     equilibrium_computation_optimizer
     termination_status::TerminationStatusCode
     equilibrium::Union{Nothing,Profile}
+    supports_enumeration::Bool
     function Optimizer(best_response_optimizer, equilibrium_computation_optimizer)
         return new(
             best_response_optimizer,
             equilibrium_computation_optimizer,
             SOLVE_NOT_CALLED,
-            nothing)
+            nothing,
+            false)
     end
 end
-
-function supports_enumeration(::Optimizer)::Bool return false end
 
 """
     get_equilibrium(optimizer::SGM.Optimizer)::Profile
