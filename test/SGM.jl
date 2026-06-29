@@ -27,11 +27,17 @@ end
     @test JuMP.is_parameter(game.var_to_param_maps[1][only(player_2_variables)])
     @test JuMP.is_parameter(game.var_to_param_maps[2][only(player_1_variables)])
 
-    optimize!(game.optimizer, game; enumeration=false)
+    @test SGM.get_termination_status(game.optimizer) == SGM.SOLVE_NOT_CALLED
 
-    eq = get_equilibrium(game.optimizer)
+    @test SGM.optimize!(game.optimizer, game; enumeration=false) === nothing
+
+    @test SGM.get_termination_status(game.optimizer) == SGM.EQUILIBRIUM_FOUND
+
+    eq = SGM.get_equilibrium(game.optimizer)
 
     @test eq isa SGM.Profile
+
+    # TODO: test value of the equilibrium found
 
     # TODO: adapt the following tests to the new structure
     # @test [σ[players[1]].supp for σ in Σ] ≈ [
