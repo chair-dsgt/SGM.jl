@@ -55,3 +55,51 @@ end
     #     [[1.25]]
     # ]
 end
+
+@testitem "Initialization" setup = [Utilities] begin
+    game = get_example_two_player_game()
+    players = game.players
+    num_players = length(players)
+    x1 = only(filter(variable -> !JuMP.is_parameter(variable), all_variables(game.players[1])))
+    x2 = only(filter(variable -> !JuMP.is_parameter(variable), all_variables(game.players[2])))
+
+    JuMP.set_start_value(x1, nothing)
+
+    sampled_strategies = SGM.initialize_strategies(
+        players,
+        num_players,
+        mock_feasibility_optimizer,
+    )
+
+    @test length(sampled_strategies) == num_players
+    @test all(length(strategies) == 1 for strategies in sampled_strategies)
+    @test only(sampled_strategies[1]).id == 1
+    @test only(sampled_strategies[2]).id == 2
+
+    x1_strategy = only(sampled_strategies[1])
+    x2_strategy = only(sampled_strategies[2])
+
+    @test Set(keys(x1_strategy.variable_values)) == Set([x1])
+    @test Set(keys(x2_strategy.variable_values)) == Set([x2])
+    @test only(values(x1_strategy.variable_values)) >= 0.0
+    @test x2_strategy.variable_values == Dict(x2 => 10.0)
+
+    JuMP.set_start_value(x2, nothing)
+
+    sampled_strategies = SGM.initialize_strategies(
+        players,
+        num_players,
+        mock_feasibility_optimizer,
+    )
+
+    @test length(sampled_strategies) == num_players
+    @test all(length(strategies) == 1 for strategies in sampled_strategies)
+
+    for (player_id, strategies) in enumerate(sampled_strategies)
+        strategy = only(strategies)
+        @test strategy.id == player_id
+        xs = filter(variable -> !JuMP.is_parameter(variable), all_variables(players[player_id]))
+        @test length(strategy.variable_values) == length(xs)
+        @test all(value == 0.0 for value in values(strategy.variable_values))
+    end
+end

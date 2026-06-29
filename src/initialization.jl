@@ -10,7 +10,6 @@ function empty_strategy_sample(num_players::Int)::Vector{Vector{PureStrategy}}
     [PureStrategy[] for _ in 1:num_players]
 end
 
-# TODO: add some tests for the function below
 """
     initialize_player_strategy(id::Int, model::JuMP.Model, optimizer_factory)::PureStrategy
 

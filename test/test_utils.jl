@@ -4,6 +4,17 @@ using TestItems
 @testsnippet Utilities begin
     using JuMP
 
+    function mock_feasibility_optimizer()
+        optimizer = JuMP.MOI.Utilities.MockOptimizer(
+            JuMP.MOI.Utilities.UniversalFallback(JuMP.MOI.Utilities.Model{Float64}()),
+        )
+        JuMP.MOI.Utilities.set_mock_optimize!(optimizer, mock -> begin
+            variables = JuMP.MOI.get(mock, JuMP.MOI.ListOfVariableIndices())
+            return JuMP.MOI.Utilities.mock_optimize!(mock, zeros(length(variables)))
+        end)
+        return optimizer
+    end
+
     function get_example_two_player_game(; optimizer = SGM.Optimizer(nothing, nothing))
         player_1 = Model()
         @variable(player_1, x1, start = 10.0)
