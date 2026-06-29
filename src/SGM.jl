@@ -21,7 +21,8 @@ In that case, the optimizer must support equilibria enumeration.
 
 The result is stored in the optimizer and can be retrieved using `get_equilibrium`.
 """
-function optimize!(optimizer::Optimizer, model::IPGModel; enumeration::Bool = false)::Nothing
+function optimize!(optimizer::Optimizer, model::IPGModel; 
+                   enumeration::Bool = false, max_iter::Integer=100, dev_tol::Float64=1e-3)::Nothing
     if enumeration
         throw(ArgumentError("SGM.Optimizer does not support equilibria enumeration.")) 
     end
@@ -37,12 +38,18 @@ function optimize!(optimizer::Optimizer, model::IPGModel; enumeration::Bool = fa
     sampled_strategies = initialize_strategies(players, num_players, optimizer.best_response_optimizer)
     sampled_game = PolymatrixSampledGame(model, sampled_strategies)
 
-    ### Step 2: Solve sampled game
+    candidate_equilibria = Vector{Profile}()
+    payoff_improvements = Vector{Tuple{Int,Float64}}()
+    for iter in 1:max_iter
+        ### Step 2: Solve sampled game
+        candidate_equlibrium = solve(sampled_game, optimizer_factory)
+        push!(candidate_equilibria, candidate_equlibrium)
 
-    ### Step 3: Termination (deviation)
+        ### Step 3: Termination (deviation)
 
-    ### Step 4: Generation of next sampled game
 
+        ### Step 4: Generation of next sampled game
+    end
 
 
     return nothing
