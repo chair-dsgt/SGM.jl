@@ -32,10 +32,39 @@ function get_polymatrix_twoplayers(game::IPGModel, strategies::Vector{Vector{Pur
 end
 
 function get_polymatrix(game::IPGModel, strategies::Vector{Vector{PureStrategy}})::Polymatrix
-    if length(players) == 2
+    if length(game.players) == 2
         return get_polymatrix_twoplayers(game, strategies)
     else
         # TODO: get_polymatrix_bilateral
-        error("Polymatrix bilateral games are not implemented yet")
+        error("Polymatrix bilateral games (more than 2 players) are not implemented yet")
     end
+end
+
+function update_polymatrix!(polymatrix::Polymatrix, p::Int, game::IPGModel, strategies::Vector{Vector{PureStrategy}})::Nothing
+    other_players = deleteat!(collect(1:length(game.players)), p) # Other players' ids 
+
+    old_num_strats_p = size(polymatrix[(p, other_players[1])], 1) # Number of player p's strategies already stored in polymatrix
+
+    sub_strategies = copy(strategies)
+    sub_strategies[p] = strategies[p][(old_num_strats_p + 1):end]
+    new_strats_polymatrix = get_polymatrix(game, sub_strategies)
+
+    for k in other_players
+        polymatrix[(p,k)] = [polymatrix[(p,k)]; new_strats_polymatrix[(p,k)]]
+        polymatrix[(k,p)] = [polymatrix[(k,p)] new_strats_polymatrix[(k,p)]] 
+    end
+    polymatrix[(p,p)] = Matrix(Diagonal([diag(polymatrix[(p,p)]); diag(new_strats_polymatrix[(p,p)])]))
+
+    return nothing
+end
+
+function negative_polymatrix_preprocessing!(polymatrix::Polymatrix)::Polymatrix
+    offset = 0.0
+    for k in keys(polymatrix)
+        offset = min(offset, minimum(polymatrix[k]))
+    end
+    for k in keys(polymatrix)
+        polymatrix[k] = polymatrix[k] .- offset
+    end
+    return polymatrix
 end
