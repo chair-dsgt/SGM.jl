@@ -38,7 +38,7 @@ end
 
 const Strategy = Union{PureStrategy, MixedStrategy}
 
-const Profile = Vector{Strategy}
+const Profile = Vector{T} where T <: Strategy
 
 @enum TerminationStatusCode begin
     SOLVE_NOT_CALLED
