@@ -3,6 +3,7 @@ module SGM
 using JuMP
 using NormalGames
 using Random
+using LinearAlgebra
 
 include("IPG/IPG_structures.jl") 
 include("IPG/IPG_functions.jl")
@@ -51,7 +52,7 @@ function optimize!(optimizer::Optimizer, model::IPGModel;
         ### Step 3: Termination (deviation)
         payoff_improvement, player_id, new_strategy = find_deviation(model, candidate_equilibrium, optimizer.best_response_optimizer, player_order, dev_tol)
 
-        if payoff_improvement < dev_tol # Equilibrium found
+        if payoff_improvement <= dev_tol # Equilibrium found
             optimizer.termination_status = EQUILIBRIUM_FOUND
             optimizer.equilibrium = candidate_equilibrium
             break 
@@ -59,7 +60,12 @@ function optimize!(optimizer::Optimizer, model::IPGModel;
 
         push!(payoff_improvements, (player_id, payoff_improvement))
         ### Step 4: Generation of next sampled game
+        push!(sampled_game.strategy_sample[player_id], new_strategy)
+        update_polymatrix!(sampled_game.polymatrix, player_id, model, sampled_game.strategy_sample)
 
+        if iter == max_iter
+            optimizer.termination_status = ITERATION_LIMIT
+        end
     end
 
     return nothing

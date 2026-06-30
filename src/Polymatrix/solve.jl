@@ -40,15 +40,4 @@ function solve_Sandholm1(sampled_game::PolymatrixSampledGame, optimizer_factory)
     return normalgame_equilibrium_to_profile(equilibrium, sampled_game.strategy_sample)
 end
 
-function negative_polymatrix_preprocessing!(polymatrix::Polymatrix)::Polymatrix
-    offset = 0
-    for k in keys(polymatrix)
-        offset = min(offset, minimum(polymatrix[k]))
-    end
-    for k in keys(polymatrix)
-        polymatrix[k] = polymatrix[k] .- offset
-    end
-    return polymatrix
-end
-
 solve = solve_PNS  # default value
