@@ -44,17 +44,24 @@ function optimize!(optimizer::Optimizer, model::IPGModel;
     payoff_improvements = Vector{Tuple{Int,Float64}}()
     for iter in 1:max_iter
         ### Step 2: Solve sampled game
-        candidate_equilibrium = solve(sampled_game, optimizer_factory)
+        candidate_equilibrium = solve(sampled_game, optimizer.equilibrium_computation_optimizer)
         push!(candidate_equilibria, candidate_equilibrium)
 
+        player_order = get_player_order(num_players, payoff_improvements)
         ### Step 3: Termination (deviation)
+        payoff_improvement, player_id, new_strategy = find_deviation(model, candidate_equilibrium, optimizer.best_response_optimizer, player_order, dev_tol)
 
+        if payoff_improvement < dev_tol # Equilibrium found
+            optimizer.termination_status = EQUILIBRIUM_FOUND
+            optimizer.equilibrium = candidate_equilibrium
+            break 
+        end
 
+        push!(payoff_improvements, (player_id, payoff_improvement))
         ### Step 4: Generation of next sampled game
-    end
 
+    end
 
     return nothing
 end
-
 end

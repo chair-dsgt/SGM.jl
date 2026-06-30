@@ -94,7 +94,6 @@ function get_best_response_model(model::IPGModel, player_id::Int, profile::Profi
     player_model = model.players[player_id]
     var_to_param_map = model.var_to_param_maps[player_id]
     best_response_model, reference_map = JuMP.copy_model(player_model)
-    profile = [strategy for strategy in profile if strategy.id != player_id] 
 
     if all(strategy -> strategy isa PureStrategy, profile) # Pure profile
         for strategy in profile
