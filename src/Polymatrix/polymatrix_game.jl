@@ -31,12 +31,41 @@ function get_polymatrix_twoplayers(game::IPGModel, strategies::Vector{Vector{Pur
     return polymatrix
 end
 
+function get_polymatrix_bilateral(game::IPGModel, strategies::Vector{Vector{PureStrategy}})::Polymatrix
+    num_players = length(game.players)
+    polymatrix = Polymatrix()
+
+    # compute utility of each player `p` using the `i_p`-th strategy against player `k`
+    # using the `i_k`-th strategy
+    for p in 1:num_players
+        for k in 1:num_players
+            polymatrix[(p,k)] = zeros(length(strategies[p]), length(strategies[k]))
+
+            # I am distributing the "self-payoff" through all players, as it seems to be the
+            # way NormalGames.jl expects it
+            if k != p
+                for (i_p, x_p) in enumerate(strategies[p])
+                    self_payoff = compute_self_payoff(game, p, x_p)
+
+                    for (i_k, x_k) in enumerate(strategies[k])
+                        polymatrix[(p,k)][i_p,i_k] = self_payoff + compute_bilateral_payoff(game, p, x_p, x_k)
+                    end
+                end
+            end
+        end
+    end
+
+    return polymatrix
+end
+
 function get_polymatrix(game::IPGModel, strategies::Vector{Vector{PureStrategy}})::Polymatrix
-    if length(game.players) == 2
+    if length(game.players) < 2
+        game.optimizer.termination_status = INVALID_MODEL
+        error("An IPG must have atleast 2 players")
+    elseif length(game.players) == 2
         return get_polymatrix_twoplayers(game, strategies)
     else
-        # TODO: get_polymatrix_bilateral
-        error("Polymatrix bilateral games (more than 2 players) are not implemented yet")
+        return get_polymatrix_bilateral(game, strategies)
     end
 end
 
@@ -67,4 +96,65 @@ function negative_polymatrix_preprocessing!(polymatrix::Polymatrix)::Polymatrix
         polymatrix[k] = polymatrix[k] .- offset
     end
     return polymatrix
+end
+
+function compute_self_payoff(game::IPGModel, player_id::Int, strategy::PureStrategy)::Float64
+    payoff_function = JuMP.objective_function(game.players[player_id], JuMP.QuadExpr)
+
+    variable_values = strategy.variable_values # Should only contain variables owned by this player
+
+    payoff_value = JuMP.constant(payoff_function) # Constant terms
+
+    # Linear terms involving only this player
+    for (coefficient, variable) in JuMP.linear_terms(payoff_function)
+        if haskey(variable_values, variable)
+            payoff_value += coefficient * variable_values[variable]
+        end
+    end
+
+    # Quadratic terms involving only this player
+    for (coefficient, variable1, variable2) in JuMP.quad_terms(payoff_function)
+        if haskey(variable_values, variable1) && haskey(variable_values, variable2)
+            payoff_value += coefficient * variable_values[variable1] * variable_values[variable2]
+        end
+    end
+
+    return Float64(payoff_value)
+end
+
+function compute_bilateral_payoff(game::IPGModel, player_id::Int, player_strategy::PureStrategy, other_strategy::PureStrategy)::Float64
+    payoff_function = JuMP.objective_function(game.players[player_id], JuMP.QuadExpr)
+
+    player_variable_values = player_strategy.variable_values # Should only contain variables owned by the player
+
+    var_to_param_map = game.var_to_param_maps[player_id]
+    other_parameter_values = Dict{JuMP.VariableRef,Float64}()
+    for (other_variable, value) in other_strategy.variable_values
+        if haskey(var_to_param_map, other_variable)
+            parameter = var_to_param_map[other_variable]
+            other_parameter_values[parameter] = value
+        end
+    end
+
+    payoff_value = 0.0
+
+    # Linear terms involving only the other player
+    for (coefficient, variable) in JuMP.linear_terms(payoff_function)
+        if haskey(other_parameter_values, variable)
+            payoff_value += coefficient * other_parameter_values[variable]
+        end
+    end
+
+    # Quadratic terms involving the other player
+    for (coefficient, variable1, variable2) in JuMP.quad_terms(payoff_function)
+        if haskey(other_parameter_values, variable1) && haskey(other_parameter_values, variable2)
+            payoff_value += coefficient * other_parameter_values[variable1] * other_parameter_values[variable2]
+        elseif haskey(other_parameter_values, variable1) && haskey(player_variable_values, variable2)
+            payoff_value += coefficient * other_parameter_values[variable1] * player_variable_values[variable2]
+        elseif haskey(player_variable_values, variable1) && haskey(other_parameter_values, variable2)
+            payoff_value += coefficient * player_variable_values[variable1] * other_parameter_values[variable2]
+        end
+    end
+
+    return Float64(payoff_value)
 end
