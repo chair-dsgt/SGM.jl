@@ -27,6 +27,7 @@ The result is stored in the optimizer and can be retrieved using `get_equilibriu
 function optimize!(optimizer::Optimizer, model::IPGModel; 
                    enumeration::Bool = false, max_iter::Integer=100, dev_tol::Float64=1e-3)::Nothing
     if enumeration
+        optimizer.termination_status = INVALID_OPTION
         throw(ArgumentError("SGM.Optimizer does not support equilibria enumeration.")) 
     end
 
