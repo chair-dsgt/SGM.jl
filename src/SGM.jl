@@ -12,6 +12,8 @@ include("initialization.jl")
 include("Polymatrix/polymatrix_game.jl")
 include("Polymatrix/solve.jl")
 include("player_order.jl")
+include("deviation.jl")
+
 
 
 """

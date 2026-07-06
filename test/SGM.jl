@@ -7,14 +7,14 @@ include("test_utils.jl")
 end
 
 @testitem "Example 5.3 two-player game" setup = [Utilities] begin
-    game = get_example_two_player_game()
+    game = get_example_two_player_game(optimizer = SGM.Optimizer(mock_feasibility_optimizer, mock_feasibility_optimizer))
 
     @test game isa SGM.IPGModel
     @test length(game.players) == 2
     @test length(game.var_to_param_maps) == 2
 
-    player_1_variables = get_player_variables(game.players[1])
-    player_2_variables = get_player_variables(game.players[2])
+    player_1_variables = SGM.get_player_variables(game.players[1])
+    player_2_variables = SGM.get_player_variables(game.players[2])
 
     @test length(player_1_variables) == 1
     @test length(player_2_variables) == 1
@@ -59,8 +59,8 @@ end
     game = get_example_two_player_game()
     players = game.players
     num_players = length(players)
-    x1 = only(get_player_variables(game.players[1]))
-    x2 = only(get_player_variables(game.players[2]))
+    x1 = only(SGM.get_player_variables(game.players[1]))
+    x2 = only(SGM.get_player_variables(game.players[2]))
 
     JuMP.set_start_value(x1, nothing)
 
@@ -97,7 +97,7 @@ end
     for (player_id, strategies) in enumerate(sampled_strategies)
         strategy = only(strategies)
         @test strategy.id == player_id
-        xs = get_player_variables(players[player_id])
+        xs = SGM.get_player_variables(players[player_id])
         @test length(strategy.variable_values) == length(xs)
         @test all(value == 0.0 for value in values(strategy.variable_values))
     end
