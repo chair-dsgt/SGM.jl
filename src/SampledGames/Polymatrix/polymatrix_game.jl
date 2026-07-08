@@ -69,7 +69,10 @@ function get_polymatrix(game::IPGModel, strategies::Vector{Vector{PureStrategy}}
     end
 end
 
-function update_polymatrix!(polymatrix::Polymatrix, p::Int, game::IPGModel, strategies::Vector{Vector{PureStrategy}})::Nothing
+function update_sampled_game!(sampled_game::PolymatrixSampledGame, p::Int, game::IPGModel)::Nothing
+    polymatrix = sampled_game.polymatrix
+    strategies = sampled_game.strategy_sample
+
     other_players = deleteat!(collect(1:length(game.players)), p) # Other players' ids 
 
     old_num_strats_p = size(polymatrix[(p, other_players[1])], 1) # Number of player p's strategies already stored in polymatrix

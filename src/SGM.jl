@@ -4,13 +4,22 @@ using JuMP
 using NormalGames
 using Random
 using LinearAlgebra
+using Gurobi
+using Juniper
+using Ipopt
+using PiecewiseLinApprox
+using PiecewiseLinearOpt
 
 include("IPG/IPG_structures.jl") 
 include("IPG/IPG_functions.jl")
 include("optimizer.jl")
 include("initialization.jl")
-include("Polymatrix/polymatrix_game.jl")
-include("Polymatrix/solve.jl")
+include("SampledGames/Polymatrix/polymatrix_game.jl")
+include("SampledGames/Polymatrix/solve.jl")
+include("SampledGames/Normal_form/normal_form_game.jl")
+include("SampledGames/Normal_form/MultiPlayer_Nash_Algorithms.jl")
+include("SampledGames/Normal_form/solve.jl")
+include("SampledGames/sampled_game_initialization.jl")
 include("player_order.jl")
 include("deviation.jl")
 
@@ -42,7 +51,7 @@ function optimize!(optimizer::Optimizer, model::IPGModel;
 
     ### Step 1: Initialization of sampled game
     sampled_strategies = initialize_strategies(players, num_players, optimizer.best_response_optimizer)
-    sampled_game = PolymatrixSampledGame(model, sampled_strategies)
+    sampled_game = initialize_sampled_game(model, sampled_strategies)
 
     candidate_equilibria = Vector{Profile}()
     payoff_improvements = Vector{Tuple{Int,Float64}}()
@@ -64,7 +73,7 @@ function optimize!(optimizer::Optimizer, model::IPGModel;
         push!(payoff_improvements, (player_id, payoff_improvement))
         ### Step 4: Generation of next sampled game
         push!(sampled_game.strategy_sample[player_id], new_strategy)
-        update_polymatrix!(sampled_game.polymatrix, player_id, model, sampled_game.strategy_sample)
+        update_sampled_game!(sampled_game, player_id, model)
 
         if iter == max_iter
             optimizer.termination_status = ITERATION_LIMIT
