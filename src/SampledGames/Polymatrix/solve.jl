@@ -40,4 +40,6 @@ function solve_Sandholm1(sampled_game::PolymatrixSampledGame, optimizer_factory)
     return normalgame_equilibrium_to_profile(equilibrium, sampled_game.strategy_sample)
 end
 
-solve = solve_PNS  # default value
+function solve(sampled_game::PolymatrixSampledGame, optimizer_factory)::Profile
+    return solve_PNS(sampled_game, optimizer_factory) # Default value
+end
