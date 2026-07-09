@@ -26,7 +26,7 @@ include("deviation.jl")
 
 
 """
-    optimize!(optimizer::SGM.Optimizer, model::IPGModel; enumeration::Bool = false)::Nothing
+    search!(optimizer::SGM.Optimizer, model::IPGModel; enumeration::Bool = false)::Nothing
 
 Run the IPG solution algorithm implemented by `optimizer` on the IPG model `model`.
 
@@ -35,7 +35,7 @@ In that case, the optimizer must support equilibria enumeration.
 
 The result is stored in the optimizer and can be retrieved using `get_equilibrium`.
 """
-function optimize!(optimizer::Optimizer, model::IPGModel; 
+function search!(optimizer::Optimizer, model::IPGModel; 
                    enumeration::Bool = false, max_iter::Integer=100, dev_tol::Float64=1e-3)::Nothing
     if enumeration
         optimizer.termination_status = INVALID_OPTION
