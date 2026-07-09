@@ -28,7 +28,7 @@ end
 
     @test SGM.get_termination_status(game.optimizer) == SGM.SOLVE_NOT_CALLED
 
-    @test SGM.optimize!(game.optimizer, game; enumeration=false) === nothing
+    @test SGM.search!(game.optimizer, game; enumeration=false) === nothing
 
     @test SGM.get_termination_status(game.optimizer) == SGM.EQUILIBRIUM_FOUND
 

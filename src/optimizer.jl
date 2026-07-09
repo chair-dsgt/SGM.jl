@@ -19,7 +19,7 @@ end
 
 Return an equilibrium stored in `optimizer`.
 
-This function can only be called after `optimize!` has been called.
+This function can only be called after `search!` has been called.
 """
 function get_equilibrium(optimizer::Optimizer)::Profile
     if optimizer.equilibrium === nothing
