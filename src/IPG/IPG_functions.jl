@@ -152,11 +152,12 @@ This function builds the best-response model, calls `optimize!` on it, and retur
 - `profile::Profile`: should contain the strategies of all other players in the game to which the player belongs.
 - `optimizer_factory`: sets the optimizer of the best response model.
 """
-function best_response(model::IPGModel, player_id::Int, profile::Profile, optimizer_factory)::PureStrategy
+function best_response(model::IPGModel, player_id::Int, profile::Profile, optimizer_factory; timelimit::Float64=Inf)::PureStrategy
     player_model = model.players[player_id]
 
     best_response_model, reference_map = get_best_response_model(model, player_id, profile, optimizer_factory)
     JuMP.set_silent(best_response_model)
+    if isfinite(timelimit) JuMP.set_time_limit_sec(best_response_model, timelimit) end
     JuMP.optimize!(best_response_model)
 
     variable_values = Dict{JuMP.VariableRef, Float64}()

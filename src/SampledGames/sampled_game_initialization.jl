@@ -1,14 +1,15 @@
-function initialize_sampled_game(model::IPGModel, strategies::Vector{Vector{PureStrategy}})::Union{PolymatrixSampledGame, NormalFormSampledGame}
+function initialize_sampled_game(model::IPGModel, strategies::Vector{Vector{PureStrategy}}, timer::SGMTimer)::Union{PolymatrixSampledGame, NormalFormSampledGame}
     for p in eachindex(model.players)
-        if !is_pairwise_payoff(model, p)
-            return NormalFormSampledGame(model, strategies)
+        check_time(timer)
+        if !is_pairwise_payoff(model, p, timer)
+            return NormalFormSampledGame(model, strategies, timer)
         end
     end
-    return PolymatrixSampledGame(model, strategies)
+    return PolymatrixSampledGame(model, strategies, timer)
 end
 
 
-function is_pairwise_payoff(model::IPGModel, player_id::Int)::Bool
+function is_pairwise_payoff(model::IPGModel, player_id::Int, timer::SGMTimer)::Bool
     if !is_quad_payoff(model, player_id)
         return false
     end
@@ -17,6 +18,7 @@ function is_pairwise_payoff(model::IPGModel, player_id::Int)::Bool
 
     param_to_player = Dict{JuMP.VariableRef, Int}()
     for p in eachindex(model.players)
+        check_time(timer)
         if p == player_id 
             continue
         end
@@ -29,6 +31,7 @@ function is_pairwise_payoff(model::IPGModel, player_id::Int)::Bool
     end
 
     for (_, var1, var2) in JuMP.quad_terms(payoff_function)
+        check_time(timer)
         if haskey(param_to_player, var1) && haskey(param_to_player, var2) && param_to_player[var1] != param_to_player[var2]
             return false
         end

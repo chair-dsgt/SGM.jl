@@ -7,12 +7,12 @@ mutable struct PolymatrixSampledGame
     polymatrix::Polymatrix
 end
 
-function PolymatrixSampledGame(model::IPGModel, strategies::Vector{Vector{PureStrategy}})::PolymatrixSampledGame
-    return PolymatrixSampledGame(strategies, get_polymatrix(model, strategies))
+function PolymatrixSampledGame(model::IPGModel, strategies::Vector{Vector{PureStrategy}}, timer::SGMTimer)::PolymatrixSampledGame
+    return PolymatrixSampledGame(strategies, get_polymatrix(model, strategies, timer))
 end
 
 # TODO: add tests for the function below
-function get_polymatrix_twoplayers(game::IPGModel, strategies::Vector{Vector{PureStrategy}})::Polymatrix
+function get_polymatrix_twoplayers(game::IPGModel, strategies::Vector{Vector{PureStrategy}}, timer::SGMTimer)::Polymatrix
     # Initialization
     polymatrix = Polymatrix()
     polymatrix[(1,1)] = zeros(length(strategies[1]), length(strategies[1]))
@@ -22,6 +22,7 @@ function get_polymatrix_twoplayers(game::IPGModel, strategies::Vector{Vector{Pur
 
     for i1 in eachindex(strategies[1])
         for i2 in eachindex(strategies[2])
+            check_time(timer)
             profile = [strategies[1][i1], strategies[2][i2]]
             polymatrix[(1,2)][i1,i2] = compute_payoff_at_profile(game, 1, profile)
             polymatrix[(2,1)][i2,i1] = compute_payoff_at_profile(game, 2, profile)
@@ -31,7 +32,7 @@ function get_polymatrix_twoplayers(game::IPGModel, strategies::Vector{Vector{Pur
     return polymatrix
 end
 
-function get_polymatrix_bilateral(game::IPGModel, strategies::Vector{Vector{PureStrategy}})::Polymatrix
+function get_polymatrix_bilateral(game::IPGModel, strategies::Vector{Vector{PureStrategy}}, timer::SGMTimer)::Polymatrix
     num_players = length(game.players)
     polymatrix = Polymatrix()
 
@@ -39,6 +40,7 @@ function get_polymatrix_bilateral(game::IPGModel, strategies::Vector{Vector{Pure
     # using the `i_k`-th strategy
     for p in 1:num_players
         for k in 1:num_players
+            check_time(timer)
             polymatrix[(p,k)] = zeros(length(strategies[p]), length(strategies[k]))
 
             # I am distributing the "self-payoff" through all players, as it seems to be the
@@ -46,9 +48,11 @@ function get_polymatrix_bilateral(game::IPGModel, strategies::Vector{Vector{Pure
             if k != p
                 for (i_p, x_p) in enumerate(strategies[p])
                     self_payoff = compute_self_payoff(game, p, x_p)
+                    check_time(timer)
 
                     for (i_k, x_k) in enumerate(strategies[k])
                         polymatrix[(p,k)][i_p,i_k] = self_payoff + compute_bilateral_payoff(game, p, x_p, x_k)
+                        check_time(timer)
                     end
                 end
             end
@@ -58,18 +62,18 @@ function get_polymatrix_bilateral(game::IPGModel, strategies::Vector{Vector{Pure
     return polymatrix
 end
 
-function get_polymatrix(game::IPGModel, strategies::Vector{Vector{PureStrategy}})::Polymatrix
+function get_polymatrix(game::IPGModel, strategies::Vector{Vector{PureStrategy}}, timer::SGMTimer)::Polymatrix
     if length(game.players) < 2
         game.optimizer.termination_status = INVALID_MODEL
         error("An IPG must have atleast 2 players")
     elseif length(game.players) == 2
-        return get_polymatrix_twoplayers(game, strategies)
+        return get_polymatrix_twoplayers(game, strategies, timer)
     else
-        return get_polymatrix_bilateral(game, strategies)
+        return get_polymatrix_bilateral(game, strategies, timer)
     end
 end
 
-function update_sampled_game!(sampled_game::PolymatrixSampledGame, p::Int, game::IPGModel)::Nothing
+function update_sampled_game!(sampled_game::PolymatrixSampledGame, p::Int, game::IPGModel, timer::SGMTimer)::Nothing
     polymatrix = sampled_game.polymatrix
     strategies = sampled_game.strategy_sample
 
@@ -79,9 +83,11 @@ function update_sampled_game!(sampled_game::PolymatrixSampledGame, p::Int, game:
 
     sub_strategies = copy(strategies)
     sub_strategies[p] = strategies[p][(old_num_strats_p + 1):end]
-    new_strats_polymatrix = get_polymatrix(game, sub_strategies)
+    check_time(timer)
+    new_strats_polymatrix = get_polymatrix(game, sub_strategies, timer)
 
     for k in other_players
+        check_time(timer)
         polymatrix[(p,k)] = [polymatrix[(p,k)]; new_strats_polymatrix[(p,k)]]
         polymatrix[(k,p)] = [polymatrix[(k,p)] new_strats_polymatrix[(k,p)]] 
     end
