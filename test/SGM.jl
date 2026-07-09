@@ -68,6 +68,7 @@ end
         players,
         num_players,
         mock_feasibility_optimizer,
+        SGM.SGMTimer(Inf64)
     )
 
     @test length(sampled_strategies) == num_players
@@ -89,6 +90,7 @@ end
         players,
         num_players,
         mock_feasibility_optimizer,
+        SGM.SGMTimer(Inf64)
     )
 
     @test length(sampled_strategies) == num_players
