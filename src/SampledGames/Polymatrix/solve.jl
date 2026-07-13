@@ -22,7 +22,7 @@ function solve_PNS(sampled_game::PolymatrixSampledGame, optimizer_factory, timer
     normal_sampled_game = normal_game(sampled_game)
 
     check_time(timer)
-    _, _, equilibria = NormalGames.NashEquilibriaPNS(normal_sampled_game, optimizer_factory, false, false, false)
+    _, _, equilibria = NormalGames.NashEquilibriaPNS(normal_sampled_game, false, false, true, remaining_time(timer))
     check_time(timer)
 
     equilibrium = equilibria[1]  # take the first Nash equilibrium
@@ -38,7 +38,7 @@ function solve_Sandholm1(sampled_game::PolymatrixSampledGame, optimizer_factory,
 
     normal_sampled_game = normal_game(sampled_game_copy)
 
-    _, _, equilibrium, _, _, _, _, _ = NormalGames.NashEquilibria2(normal_sampled_game, optimizer_factory)
+    _, _, equilibrium, _, _, _, _, _ = NormalGames.NashEquilibria2(normal_sampled_game)
     check_time(timer)
 
     return normalgame_equilibrium_to_profile(equilibrium, sampled_game.strategy_sample)

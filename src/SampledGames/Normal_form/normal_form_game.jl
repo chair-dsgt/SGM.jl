@@ -43,7 +43,7 @@ function get_normal_form(model::IPGModel, strategies::Vector{Vector{PureStrategy
 end
 
 function update_sampled_game!(normal_form_sampled_game::NormalFormSampledGame, p::Int, model::IPGModel, timer::SGMTimer)::Nothing
-    normal_form_sampled_game.nGame = get_normal_form(model, normal_form_sampled_game.strategy_sample, timer)
+    normal_form_sampled_game.nGame = get_normal_form(model, normal_form_sampled_game.strategy_sample, timer) # TODO: Make this more efficient
 
     return nothing
 end

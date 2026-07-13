@@ -1,6 +1,6 @@
 mutable struct Optimizer <: IPGOptimizer 
     best_response_optimizer
-    equilibrium_computation_optimizer
+    equilibrium_computation_optimizer # Unnecessary? => our equilibrium computation solvers don't use it (they all use their own optimizer)
     termination_status::TerminationStatusCode
     equilibrium::Union{Nothing,Profile}
     supports_enumeration::Bool
