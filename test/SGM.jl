@@ -6,8 +6,17 @@ include("test_utils.jl")
     @test SGM isa Module
 end
 
-@testitem "Example 5.3 two-player game" setup = [Utilities] begin
-    game = get_example_two_player_game(optimizer = SGM.Optimizer(mock_feasibility_optimizer, mock_feasibility_optimizer))
+@testitem "Example 5.3 two-player game" setup = [Utilities] begin     # From Computing equilibria for integer programming games
+    using Gurobi
+
+    a = 0.1
+    E_true = 1e-6
+    E_SGM = (1 - a) * E_true
+    E_MIP = a * E_true
+
+    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0, "MIPGapAbs" => E_MIP)
+
+    game = get_example_two_player_game(optimizer = SGM.Optimizer(gurobi, nothing))
 
     @test game isa SGM.IPGModel
     @test length(game.players) == 2
@@ -28,7 +37,7 @@ end
 
     @test SGM.get_termination_status(game.optimizer) == SGM.SOLVE_NOT_CALLED
 
-    @test SGM.search!(game.optimizer, game; enumeration=false) === nothing
+    @test SGM.search!(game.optimizer, game; enumeration=false, dev_tol=E_SGM) === nothing
 
     @test SGM.get_termination_status(game.optimizer) == SGM.EQUILIBRIUM_FOUND
 
@@ -36,23 +45,38 @@ end
 
     @test eq isa SGM.Profile
 
-    # TODO: test value of the equilibrium found
+    candidate_equilibria = game.optimizer.candidate_equilibria
+    
+    @test [[only(profile[1].supp).variable_values[only(player_1_variables)]] for profile in candidate_equilibria[1:5]] ≈ [
+        [10.0],
+        [5.0],
+        [5.0],
+        [1.25],
+        [1.25]
+    ]
+    
+    @test [[only(profile[2].supp).variable_values[only(player_2_variables)]] for profile in candidate_equilibria[1:5]] ≈ [
+        [10.0],
+        [10.0],
+        [2.5],
+        [2.5],
+        [0.625]
+    ]
 
-    # TODO: adapt the following tests to the new structure
-    # @test [σ[players[1]].supp for σ in Σ] ≈ [
-    #     [[10.0]],
-    #     [[10.0]],
-    #     [[2.5]],
-    #     [[2.5]],
-    #     [[0.625]]
-    # ]
-    # @test [σ[players[2]].supp for σ in Σ] ≈ [
-    #     [[10.0]],
-    #     [[5.0]],
-    #     [[5.0]],
-    #     [[1.25]],
-    #     [[1.25]]
-    # ]
+    for i in 1:length(game.players)
+        A_i = SGM.compute_payoff_at_profile(game, i, eq)
+    
+        eq_others = SGM.Strategy[strategy for strategy in eq if strategy.id != i]
+        best_response_strat = SGM.best_response(game, i, eq_others, game.optimizer.best_response_optimizer)
+        new_profile = SGM.Strategy[strategy.id == i ? best_response_strat : strategy for strategy in eq]
+    
+        B_i = SGM.compute_payoff_at_profile(game, i, new_profile)
+    
+        @test abs(A_i - B_i) <= E_true
+    end
+
+    @test only(eq[1].probs) ≈ 1.0
+    @test only(eq[2].probs) ≈ 1.0
 end
 
 @testitem "Initialization" setup = [Utilities] begin
