@@ -39,7 +39,8 @@ The result is stored in the optimizer and can be retrieved using `get_equilibriu
 """
 function search!(optimizer::Optimizer, model::IPGModel; 
                    enumeration::Bool = false, max_iter::Integer=100, dev_tol::Float64=1e-3, time_limit::Float64=Inf)::Nothing
-    timer = SGMTimer(time_limit)      
+                   
+    timer = SGMTimer(time_limit)
 
     try
         if enumeration
@@ -61,13 +62,13 @@ function search!(optimizer::Optimizer, model::IPGModel;
         sampled_game = initialize_sampled_game(model, sampled_strategies, timer)
         check_time(timer)
     
-        candidate_equilibria = Vector{Profile}()
+        optimizer.candidate_equilibria = Vector{Profile}()
         payoff_improvements = Vector{Tuple{Int,Float64}}()
         for iter in 1:max_iter
             ### Step 2: Solve sampled game
             candidate_equilibrium = solve(sampled_game, optimizer.equilibrium_computation_optimizer, timer)
             check_time(timer)
-            push!(candidate_equilibria, candidate_equilibrium)
+            push!(optimizer.candidate_equilibria, candidate_equilibrium)
     
             player_order = get_player_order(num_players, payoff_improvements)
             check_time(timer)

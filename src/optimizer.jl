@@ -4,6 +4,7 @@ mutable struct Optimizer <: IPGOptimizer
     termination_status::TerminationStatusCode
     equilibrium::Union{Nothing,Profile}
     supports_enumeration::Bool
+    candidate_equilibria::Vector{Profile}
     function Optimizer(best_response_optimizer, equilibrium_computation_optimizer)
         return new(
             best_response_optimizer,
