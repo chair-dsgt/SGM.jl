@@ -43,15 +43,13 @@ function get_polymatrix_bilateral(game::IPGModel, strategies::Vector{Vector{Pure
             check_time(timer)
             polymatrix[(p,k)] = zeros(length(strategies[p]), length(strategies[k]))
 
-            # I am distributing the "self-payoff" through all players, as it seems to be the
-            # way NormalGames.jl expects it
             if k != p
                 for (i_p, x_p) in enumerate(strategies[p])
                     self_payoff = compute_self_payoff(game, p, x_p)
                     check_time(timer)
 
                     for (i_k, x_k) in enumerate(strategies[k])
-                        polymatrix[(p,k)][i_p,i_k] = self_payoff + compute_bilateral_payoff(game, p, x_p, x_k)
+                        polymatrix[(p,k)][i_p,i_k] = self_payoff / (num_players - 1) + compute_bilateral_payoff(game, p, x_p, x_k)
                         check_time(timer)
                     end
                 end
