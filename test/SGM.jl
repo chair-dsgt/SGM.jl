@@ -6,7 +6,7 @@ include("test_utils.jl")
     @test SGM isa Module
 end
 
-@testitem "Example 5.3 two-player game" setup = [Utilities] begin     # From Computing equilibria for integer programming games
+@testitem "Example 5.3 two-player game" setup = [Utilities] begin     # From "Computing equilibria for integer programming games"
     using Gurobi
 
     a = 0.1
@@ -148,6 +148,49 @@ end
     @test eq[2].probs[1] ≈ 1/3
     @test eq[2].probs[2] ≈ 1/3
     @test eq[2].probs[3] ≈ 1/3
+end
+
+@testitem "Example three-player game" setup = [Utilities] begin     # From "When do Mixed-Integer Games Admit Rational Equilibria?"
+    using Gurobi
+
+    a = 0.1
+    E_true = 1e-3
+    E_SGM = (1 - a) * E_true
+    E_MIP = a * E_true
+
+    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
+
+    game = get_example_three_player_game(optimizer = SGM.Optimizer(gurobi, nothing))
+
+    @test game isa SGM.IPGModel
+    @test length(game.players) == 3
+    @test length(game.var_to_param_maps) == 3
+
+    player_1_variables = SGM.get_player_variables(game.players[1])
+    player_2_variables = SGM.get_player_variables(game.players[2])
+    player_3_variables = SGM.get_player_variables(game.players[3])
+
+    @test SGM.get_termination_status(game.optimizer) == SGM.SOLVE_NOT_CALLED
+
+    @test SGM.search!(game.optimizer, game; enumeration=false, dev_tol=E_SGM) === nothing
+
+    @test SGM.get_termination_status(game.optimizer) == SGM.EQUILIBRIUM_FOUND
+
+    eq = SGM.get_equilibrium(game.optimizer)
+
+    @test eq isa SGM.Profile
+
+    for i in 1:length(game.players)
+        A_i = SGM.compute_payoff_at_profile(game, i, eq)
+    
+        eq_others = SGM.Strategy[strategy for strategy in eq if strategy.id != i]
+        best_response_strat = SGM.best_response(game, i, eq_others, game.optimizer.best_response_optimizer)
+        new_profile = SGM.Strategy[strategy.id == i ? best_response_strat : strategy for strategy in eq]
+    
+        B_i = SGM.compute_payoff_at_profile(game, i, new_profile)
+
+        @test abs(A_i - B_i) <= E_true
+    end
 end
 
 @testitem "Initialization" setup = [Utilities] begin

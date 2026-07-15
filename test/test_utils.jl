@@ -79,4 +79,48 @@ using TestItems
 
         return SGM.IPGModel(players, var_to_param_maps, optimizer)
     end
+
+    function get_example_three_player_game(; optimizer = SGM.Optimizer(nothing, nothing))
+        player_1 = Model()
+        @variable(player_1, y1)
+        @variable(player_1, z1, Bin)
+        @constraint(player_1, -5 * z1 <= y1)
+        @constraint(player_1, y1 <= 5 * z1)
+
+        player_2 = Model()
+        @variable(player_2, y2)
+        @variable(player_2, z2, Bin)
+        @constraint(player_2, -5 * z2 <= y2)
+        @constraint(player_2, y2 <= 5 * z2)
+
+        player_3 = Model()
+        @variable(player_3, -5 <= y3 <= 4)
+        @variable(player_3, z3, Bin)
+
+        y3_param1 = @variable(player_1, set = Parameter(0.0), base_name = "y3")
+        z3_param1 = @variable(player_1, set = Parameter(0.0), base_name = "z3")
+
+        y3_param2 = @variable(player_2, set = Parameter(0.0), base_name = "y3")
+        z3_param2 = @variable(player_2, set = Parameter(0.0), base_name = "z3")
+
+        z1_param3 = @variable(player_3, set = Parameter(0.0), base_name = "z1")
+        z2_param3 = @variable(player_3, set = Parameter(0.0), base_name = "z2")
+
+        # Example in article is a minimization problem, but current the current implementation only supports maximization
+        @objective(player_1, Max, -(y1^2 - y3_param1 * y1 + y3_param1 * z1 - (8 * z3_param1 - 1) * z1))
+        @objective(player_2, Max, -(y2^2 - y3_param2 * y2 + y3_param2 * z2 + (30 * z3_param2 + 1) * z2))
+        @objective(player_3, Max, -((z1_param3 - z2_param3 - 1/2) * z3))
+
+        players = [player_1, player_2, player_3]
+        var_to_param_maps = [
+            Dict(y3 => y3_param1,
+                 z3 => z3_param1),
+            Dict(y3 => y3_param2,
+                 z3 => z3_param2),
+            Dict(z1 => z1_param3,
+                 z2 => z2_param3),
+        ]
+
+        return SGM.IPGModel(players, var_to_param_maps, optimizer)
+    end
 end
