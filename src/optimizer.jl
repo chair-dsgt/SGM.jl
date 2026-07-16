@@ -11,14 +11,18 @@ mutable struct Optimizer <: IPGOptimizer
             equilibrium_computation_optimizer,
             SOLVE_NOT_CALLED,
             nothing,
-            false)
+            false,
+            Profile[])
     end
 end
 
 """
     get_equilibrium(optimizer::SGM.Optimizer)::Profile
+    get_equilibrium(optimizer::SGM.Optimizer, i::Int)::Profile
 
 Return an equilibrium stored in `optimizer`.
+
+The function `get_equilibrium(optimizer, i)` returns the `i`-th equilibrium stored in the optimizer. An error is returned if `i` is out of bounds.
 
 This function can only be called after `search!` has been called.
 """
@@ -28,6 +32,21 @@ function get_equilibrium(optimizer::Optimizer)::Profile
     end
     
     return optimizer.equilibrium
+end
+function get_equilibrium(optimizer::Optimizer, i::Int)::Profile
+    if i == 1
+        if optimizer.equilibrium === nothing
+            error("No equilibrium is available; find_equilibrium! must be called first")
+        end
+    
+    return optimizer.equilibrium
+    end
+
+    error("SGM.Optimizer does not support equilibria enumeration, therefore i is out of bounds")
+end
+
+function get_equilibria(optimizer::Optimizer)::Vector{Profile}
+    error("SGM.Optimizer does not support equilibria enumeration")
 end
 
 """
