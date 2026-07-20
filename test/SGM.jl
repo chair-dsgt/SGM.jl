@@ -80,6 +80,80 @@ end
     @test only(eq[2].probs) ≈ 1.0
 end
 
+@testitem "Example 5.3 two-player game using IPG" setup = [Utilities] begin     # From "Computing equilibria for integer programming games"
+    using Gurobi
+    using IPG
+
+    a = 0.1
+    E_true = 1e-6
+    E_SGM = (1 - a) * E_true
+    E_MIP = a * E_true
+
+    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
+
+    game = get_example_two_player_game_usingIPG(optimizer = SGM.Optimizer(gurobi, nothing))
+
+    @test game isa IPG.IPGModel
+    @test length(game.players) == 2
+    @test length(game.var_to_param_maps) == 2
+
+    player_1_variables = IPG.get_player_variables(game.players[1])
+    player_2_variables = IPG.get_player_variables(game.players[2])
+
+    @test length(player_1_variables) == 1
+    @test length(player_2_variables) == 1
+    @test JuMP.start_value(only(player_1_variables)) == 10.0
+    @test JuMP.start_value(only(player_2_variables)) == 10.0
+
+    @test haskey(game.var_to_param_maps[1], only(player_2_variables))
+    @test haskey(game.var_to_param_maps[2], only(player_1_variables))
+    @test JuMP.is_parameter(game.var_to_param_maps[1][only(player_2_variables)])
+    @test JuMP.is_parameter(game.var_to_param_maps[2][only(player_1_variables)])
+
+    @test IPG.termination_status(game) == IPG.SOLVE_NOT_CALLED
+
+    @test IPG.find_equilibrium!(game; dev_tol=E_SGM) === nothing
+
+    @test IPG.termination_status(game) == IPG.EQUILIBRIUM_FOUND
+
+    eq = IPG.equilibrium(game)
+
+    @test eq isa IPG.Profile
+
+    candidate_equilibria = game.optimizer.candidate_equilibria
+    
+    @test [[only(profile[1].supp).variable_values[only(player_1_variables)]] for profile in candidate_equilibria[1:5]] ≈ [
+        [10.0],
+        [5.0],
+        [5.0],
+        [1.25],
+        [1.25]
+    ]
+    
+    @test [[only(profile[2].supp).variable_values[only(player_2_variables)]] for profile in candidate_equilibria[1:5]] ≈ [
+        [10.0],
+        [10.0],
+        [2.5],
+        [2.5],
+        [0.625]
+    ]
+
+    for i in 1:length(game.players)
+        A_i = IPG.payoff(game, i, eq)
+    
+        eq_others = IPG.Strategy[strategy for strategy in eq if strategy.id != i]
+        best_response_strat = IPG.best_response(game, i, eq_others, game.optimizer.best_response_optimizer)
+        new_profile = IPG.Strategy[strategy.id == i ? best_response_strat : strategy for strategy in eq]
+    
+        B_i = IPG.payoff(game, i, new_profile)
+    
+        @test abs(A_i - B_i) <= E_true
+    end
+
+    @test only(eq[1].probs) ≈ 1.0
+    @test only(eq[2].probs) ≈ 1.0
+end
+
 @testitem "Rock-paper-scissors game" setup = [Utilities] begin
     using Gurobi
     using IPG
@@ -152,6 +226,78 @@ end
     @test eq[2].probs[3] ≈ 1/3
 end
 
+@testitem "Rock-paper-scissors game using IPG" setup = [Utilities] begin
+    using Gurobi
+    using IPG
+
+    a = 0.1
+    E_true = 1e-6
+    E_SGM = (1 - a) * E_true
+    E_MIP = a * E_true
+
+    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
+
+    game = get_rock_paper_scissors_game_usingIPG(optimizer = SGM.Optimizer(gurobi, nothing))
+
+    @test game isa IPG.IPGModel
+    @test length(game.players) == 2
+    @test length(game.var_to_param_maps) == 2
+
+    player_1_variables = IPG.get_player_variables(game.players[1])
+    player_2_variables = IPG.get_player_variables(game.players[2])
+
+    @test length(player_1_variables) == 3
+    @test length(player_2_variables) == 3
+    @test JuMP.start_value(player_1_variables[1]) == 1.0
+    @test JuMP.start_value(player_1_variables[2]) == 0.0
+    @test JuMP.start_value(player_1_variables[3]) == 0.0
+    @test JuMP.start_value(player_2_variables[1]) == 1.0
+    @test JuMP.start_value(player_2_variables[2]) == 0.0
+    @test JuMP.start_value(player_2_variables[3]) == 0.0
+
+    @test haskey(game.var_to_param_maps[1], player_2_variables[1])
+    @test haskey(game.var_to_param_maps[1], player_2_variables[2])
+    @test haskey(game.var_to_param_maps[1], player_2_variables[3])
+    @test haskey(game.var_to_param_maps[2], player_1_variables[1])
+    @test haskey(game.var_to_param_maps[2], player_1_variables[2])
+    @test haskey(game.var_to_param_maps[2], player_1_variables[3])
+    @test JuMP.is_parameter(game.var_to_param_maps[1][player_2_variables[1]])
+    @test JuMP.is_parameter(game.var_to_param_maps[1][player_2_variables[2]])
+    @test JuMP.is_parameter(game.var_to_param_maps[1][player_2_variables[3]])
+    @test JuMP.is_parameter(game.var_to_param_maps[2][player_1_variables[1]])
+    @test JuMP.is_parameter(game.var_to_param_maps[2][player_1_variables[2]])
+    @test JuMP.is_parameter(game.var_to_param_maps[2][player_1_variables[3]])
+
+    @test IPG.termination_status(game) == IPG.SOLVE_NOT_CALLED
+
+    @test IPG.find_equilibrium!(game; dev_tol=E_SGM) === nothing
+
+    @test IPG.termination_status(game) == IPG.EQUILIBRIUM_FOUND
+
+    eq = IPG.equilibrium(game)
+
+    @test eq isa IPG.Profile
+    
+    for i in 1:length(game.players)
+        A_i = IPG.payoff(game, i, eq)
+
+        eq_others = IPG.Strategy[strategy for strategy in eq if strategy.id != i]
+        best_response_strat = IPG.best_response(game, i, eq_others, game.optimizer.best_response_optimizer)
+        new_profile = IPG.Strategy[strategy.id == i ? best_response_strat : strategy for strategy in eq]
+
+        B_i = IPG.payoff(game, i, new_profile)
+
+        @test abs(A_i - B_i) <= E_true
+    end
+
+    @test eq[1].probs[1] ≈ 1/3
+    @test eq[1].probs[2] ≈ 1/3
+    @test eq[1].probs[3] ≈ 1/3
+    @test eq[2].probs[1] ≈ 1/3
+    @test eq[2].probs[2] ≈ 1/3
+    @test eq[2].probs[3] ≈ 1/3
+end
+
 @testitem "Example three-player game" setup = [Utilities] begin     # From "When do Mixed-Integer Games Admit Rational Equilibria?"
     using Gurobi
     using IPG
@@ -180,6 +326,50 @@ end
     @test SGM.get_termination_status(game.optimizer) == IPG.EQUILIBRIUM_FOUND
 
     eq = SGM.get_equilibrium(game.optimizer)
+
+    @test eq isa IPG.Profile
+
+    for i in 1:length(game.players)
+        A_i = IPG.payoff(game, i, eq)
+    
+        eq_others = IPG.Strategy[strategy for strategy in eq if strategy.id != i]
+        best_response_strat = IPG.best_response(game, i, eq_others, game.optimizer.best_response_optimizer)
+        new_profile = IPG.Strategy[strategy.id == i ? best_response_strat : strategy for strategy in eq]
+    
+        B_i = IPG.payoff(game, i, new_profile)
+
+        @test abs(A_i - B_i) <= E_true
+    end
+end
+
+@testitem "Example three-player game using IPG" setup = [Utilities] begin     # From "When do Mixed-Integer Games Admit Rational Equilibria?"
+    using Gurobi
+    using IPG
+
+    a = 0.1
+    E_true = 1e-3
+    E_SGM = (1 - a) * E_true
+    E_MIP = a * E_true
+
+    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
+
+    game = get_example_three_player_game_usingIPG(optimizer = SGM.Optimizer(gurobi, nothing))
+
+    @test game isa IPG.IPGModel
+    @test length(game.players) == 3
+    @test length(game.var_to_param_maps) == 3
+
+    player_1_variables = IPG.get_player_variables(game.players[1])
+    player_2_variables = IPG.get_player_variables(game.players[2])
+    player_3_variables = IPG.get_player_variables(game.players[3])
+
+    @test IPG.termination_status(game) == IPG.SOLVE_NOT_CALLED
+
+    @test IPG.find_equilibrium!(game; dev_tol=E_SGM) === nothing
+
+    @test IPG.termination_status(game) == IPG.EQUILIBRIUM_FOUND
+
+    eq = IPG.equilibrium(game)
 
     @test eq isa IPG.Profile
 
