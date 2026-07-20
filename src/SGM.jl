@@ -10,6 +10,8 @@ using Ipopt
 using PiecewiseLinApprox
 using PiecewiseLinearOpt
 
+import IPG
+
 include("IPG/IPG_structures.jl") 
 include("IPG/IPG_functions.jl")
 include("time.jl")
