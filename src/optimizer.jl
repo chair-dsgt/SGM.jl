@@ -1,24 +1,24 @@
-mutable struct Optimizer <: IPGOptimizer 
+mutable struct Optimizer <: IPG.IPGOptimizer 
     best_response_optimizer
     equilibrium_computation_optimizer # Unnecessary? => our equilibrium computation solvers don't use it (they all use their own optimizer)
-    termination_status::TerminationStatusCode
-    equilibrium::Union{Nothing,Profile}
+    termination_status::IPG.TerminationStatusCode
+    equilibrium::Union{Nothing,IPG.Profile}
     supports_enumeration::Bool
-    candidate_equilibria::Vector{Profile}
+    candidate_equilibria::Vector{IPG.Profile}
     function Optimizer(best_response_optimizer, equilibrium_computation_optimizer)
         return new(
             best_response_optimizer,
             equilibrium_computation_optimizer,
-            SOLVE_NOT_CALLED,
+            IPG.SOLVE_NOT_CALLED,
             nothing,
             false,
-            Profile[])
+            IPG.Profile[])
     end
 end
 
 """
-    get_equilibrium(optimizer::SGM.Optimizer)::Profile
-    get_equilibrium(optimizer::SGM.Optimizer, i::Int)::Profile
+    get_equilibrium(optimizer::SGM.Optimizer)::IPG.Profile
+    get_equilibrium(optimizer::SGM.Optimizer, i::Int)::IPG.Profile
 
 Return an equilibrium stored in `optimizer`.
 
@@ -26,14 +26,14 @@ The function `get_equilibrium(optimizer, i)` returns the `i`-th equilibrium stor
 
 This function can only be called after `search!` has been called.
 """
-function get_equilibrium(optimizer::Optimizer)::Profile
+function get_equilibrium(optimizer::Optimizer)::IPG.Profile
     if optimizer.equilibrium === nothing
         error("No equilibrium is available; find_equilibrium! must be called first")
     end
     
     return optimizer.equilibrium
 end
-function get_equilibrium(optimizer::Optimizer, i::Int)::Profile
+function get_equilibrium(optimizer::Optimizer, i::Int)::IPG.Profile
     if i == 1
         if optimizer.equilibrium === nothing
             error("No equilibrium is available; find_equilibrium! must be called first")
@@ -45,7 +45,7 @@ function get_equilibrium(optimizer::Optimizer, i::Int)::Profile
     error("SGM.Optimizer does not support equilibria enumeration, therefore i is out of bounds")
 end
 
-function get_equilibria(optimizer::Optimizer)::Vector{Profile}
+function get_equilibria(optimizer::Optimizer)::Vector{IPG.Profile}
     error("SGM.Optimizer does not support equilibria enumeration")
 end
 
@@ -54,6 +54,6 @@ end
 
 Return an `IPG.TerminationStatusCode` describing why the SGM solver stopped.
 """
-function get_termination_status(optimizer::Optimizer)::TerminationStatusCode
+function get_termination_status(optimizer::Optimizer)::IPG.TerminationStatusCode
     return optimizer.termination_status
 end

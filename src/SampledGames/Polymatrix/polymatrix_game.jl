@@ -3,16 +3,16 @@
 const Polymatrix = Dict{Tuple{Int, Int}, Matrix{Float64}} 
 
 mutable struct PolymatrixSampledGame
-    strategy_sample::Vector{Vector{PureStrategy}}
+    strategy_sample::Vector{Vector{IPG.PureStrategy}}
     polymatrix::Polymatrix
 end
 
-function PolymatrixSampledGame(model::IPGModel, strategies::Vector{Vector{PureStrategy}}, timer::SGMTimer)::PolymatrixSampledGame
+function PolymatrixSampledGame(model::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::PolymatrixSampledGame
     return PolymatrixSampledGame(strategies, get_polymatrix(model, strategies, timer))
 end
 
 # TODO: add tests for the function below
-function get_polymatrix_twoplayers(game::IPGModel, strategies::Vector{Vector{PureStrategy}}, timer::SGMTimer)::Polymatrix
+function get_polymatrix_twoplayers(game::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::Polymatrix
     # Initialization
     polymatrix = Polymatrix()
     polymatrix[(1,1)] = zeros(length(strategies[1]), length(strategies[1]))
@@ -24,15 +24,15 @@ function get_polymatrix_twoplayers(game::IPGModel, strategies::Vector{Vector{Pur
         for i2 in eachindex(strategies[2])
             check_time(timer)
             profile = [strategies[1][i1], strategies[2][i2]]
-            polymatrix[(1,2)][i1,i2] = compute_payoff_at_profile(game, 1, profile)
-            polymatrix[(2,1)][i2,i1] = compute_payoff_at_profile(game, 2, profile)
+            polymatrix[(1,2)][i1,i2] = IPG.payoff(game, 1, profile)
+            polymatrix[(2,1)][i2,i1] = IPG.payoff(game, 2, profile)
         end
     end
 
     return polymatrix
 end
 
-function get_polymatrix_bilateral(game::IPGModel, strategies::Vector{Vector{PureStrategy}}, timer::SGMTimer)::Polymatrix
+function get_polymatrix_bilateral(game::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::Polymatrix
     num_players = length(game.players)
     polymatrix = Polymatrix()
 
@@ -60,9 +60,9 @@ function get_polymatrix_bilateral(game::IPGModel, strategies::Vector{Vector{Pure
     return polymatrix
 end
 
-function get_polymatrix(game::IPGModel, strategies::Vector{Vector{PureStrategy}}, timer::SGMTimer)::Polymatrix
+function get_polymatrix(game::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::Polymatrix
     if length(game.players) < 2
-        game.optimizer.termination_status = INVALID_MODEL
+        game.optimizer.termination_status = IPG.INVALID_MODEL
         error("An IPG must have atleast 2 players")
     elseif length(game.players) == 2
         return get_polymatrix_twoplayers(game, strategies, timer)
@@ -71,7 +71,7 @@ function get_polymatrix(game::IPGModel, strategies::Vector{Vector{PureStrategy}}
     end
 end
 
-function update_sampled_game!(sampled_game::PolymatrixSampledGame, p::Int, game::IPGModel, timer::SGMTimer)::Nothing
+function update_sampled_game!(sampled_game::PolymatrixSampledGame, p::Int, game::IPG.IPGModel, timer::SGMTimer)::Nothing
     polymatrix = sampled_game.polymatrix
     strategies = sampled_game.strategy_sample
 
@@ -105,7 +105,7 @@ function negative_polymatrix_preprocessing!(polymatrix::Polymatrix)::Polymatrix
     return polymatrix
 end
 
-function compute_self_payoff(game::IPGModel, player_id::Int, strategy::PureStrategy)::Float64
+function compute_self_payoff(game::IPG.IPGModel, player_id::Int, strategy::IPG.PureStrategy)::Float64
     payoff_function = JuMP.objective_function(game.players[player_id], JuMP.QuadExpr)
 
     variable_values = strategy.variable_values # Should only contain variables owned by this player
@@ -129,7 +129,7 @@ function compute_self_payoff(game::IPGModel, player_id::Int, strategy::PureStrat
     return Float64(payoff_value)
 end
 
-function compute_bilateral_payoff(game::IPGModel, player_id::Int, player_strategy::PureStrategy, other_strategy::PureStrategy)::Float64
+function compute_bilateral_payoff(game::IPG.IPGModel, player_id::Int, player_strategy::IPG.PureStrategy, other_strategy::IPG.PureStrategy)::Float64
     payoff_function = JuMP.objective_function(game.players[player_id], JuMP.QuadExpr)
 
     player_variable_values = player_strategy.variable_values # Should only contain variables owned by the player

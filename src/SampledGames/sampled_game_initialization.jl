@@ -1,4 +1,4 @@
-function initialize_sampled_game(model::IPGModel, strategies::Vector{Vector{PureStrategy}}, timer::SGMTimer)::Union{PolymatrixSampledGame, NormalFormSampledGame}
+function initialize_sampled_game(model::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::Union{PolymatrixSampledGame, NormalFormSampledGame}
     for p in eachindex(model.players)
         check_time(timer)
         if !is_pairwise_payoff(model, p, timer)
@@ -9,7 +9,7 @@ function initialize_sampled_game(model::IPGModel, strategies::Vector{Vector{Pure
 end
 
 
-function is_pairwise_payoff(model::IPGModel, player_id::Int, timer::SGMTimer)::Bool
+function is_pairwise_payoff(model::IPG.IPGModel, player_id::Int, timer::SGMTimer)::Bool
     if !is_quad_payoff(model, player_id)
         return false
     end
@@ -22,7 +22,7 @@ function is_pairwise_payoff(model::IPGModel, player_id::Int, timer::SGMTimer)::B
         if p == player_id 
             continue
         end
-        for var in get_player_variables(model.players[p])
+        for var in IPG.get_player_variables(model.players[p])
             if haskey(model.var_to_param_maps[player_id], var)
                 param = model.var_to_param_maps[player_id][var]
                 param_to_player[param] = p
@@ -40,7 +40,7 @@ function is_pairwise_payoff(model::IPGModel, player_id::Int, timer::SGMTimer)::B
     return true
 end
 
-function is_quad_payoff(model::IPGModel, player_id::Int)::Bool
+function is_quad_payoff(model::IPG.IPGModel, player_id::Int)::Bool
     try JuMP.objective_function(model.players[player_id], JuMP.QuadExpr)
         return true
     catch

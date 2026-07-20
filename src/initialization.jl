@@ -1,5 +1,5 @@
 """
-    initialize_player_strategy(id::Int, model::JuMP.Model, optimizer_factory)::PureStrategy
+    initialize_player_strategy(id::Int, model::JuMP.Model, optimizer_factory)::IPG.PureStrategy
 
 Construct an initial pure strategy for player number `id`.
 
@@ -7,8 +7,8 @@ If every variable has a start value, these values are used directly. Otherwise, 
 player's model `model` is solved as a feasibility problem using `optimizer_factory`, and the resulting
 variable values are used.
 """
-function initialize_player_strategy(id::Int, model::JuMP.Model, optimizer_factory, timelimit::Float64)::PureStrategy
-    variables = get_player_variables(model)
+function initialize_player_strategy(id::Int, model::JuMP.Model, optimizer_factory, timelimit::Float64)::IPG.PureStrategy
+    variables = IPG.get_player_variables(model)
     values = JuMP.start_value.(variables)
 
     if nothing in values # solve feasibility problem
@@ -28,16 +28,16 @@ function initialize_player_strategy(id::Int, model::JuMP.Model, optimizer_factor
         variable_values[variable] = value
     end
 
-    return PureStrategy(id, variable_values)
+    return IPG.PureStrategy(id, variable_values)
 end
 
 
 """
-    initialize_strategies(players::Vector{JuMP.Model}, num_players::Int, optimizer_factory)::Vector{Vector{PureStrategy}}
+    initialize_strategies(players::Vector{JuMP.Model}, num_players::Int, optimizer_factory)::Vector{Vector{IPG.PureStrategy}}
 
 Initialize the sampled strategies for all players.
 
-Returns a `Vector{Vector{PureStrategy}}` in which entry `i` contains the initial sampled pure strategy of player `i`.
+Returns a `Vector{Vector{IPG.PureStrategy}}` in which entry `i` contains the initial sampled pure strategy of player `i`.
 
 # Arguments 
 
@@ -45,8 +45,8 @@ Returns a `Vector{Vector{PureStrategy}}` in which entry `i` contains the initial
 * `num_players::Int`: Total number of players in the game. 
 * `optimizer_factory`: Optimizer factory used if a feasibility problem must be solved to initialize a player's strategy.
 """
-function initialize_strategies(players::Vector{JuMP.Model}, num_players::Int, optimizer_factory, timer::SGMTimer)::Vector{Vector{PureStrategy}}
-    initial_sampled_strategies = empty_strategy_sample(num_players)
+function initialize_strategies(players::Vector{JuMP.Model}, num_players::Int, optimizer_factory, timer::SGMTimer)::Vector{Vector{IPG.PureStrategy}}
+    initial_sampled_strategies = IPG.empty_strategy_sample(num_players)
     check_time(timer)
 
     for i in 1:num_players
