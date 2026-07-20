@@ -92,15 +92,15 @@ function compute_nash_equilibria(my_game::NGame,method::Int=1, timelimit::Float6
 
         # Variables 
         # define probability distribution for each player
-        x = [@variable(model, [1:my_game.strat[i]], lower_bound = 0.0, upper_bound = 1.0) for i = 1:my_game.n] 
+        x = [JuMP.@variable(model, [1:my_game.strat[i]], lower_bound = 0.0, upper_bound = 1.0) for i = 1:my_game.n] 
         # define indicator variable for each strategy of each player
-        y = [@variable(model, [1:my_game.strat[i]], Bin) for i = 1:my_game.n]
+        y = [JuMP.@variable(model, [1:my_game.strat[i]], Bin) for i = 1:my_game.n]
         # define expected utility value for each player
-        @variable(model, u[i = 1:my_game.n], lower_bound=mins[i]*(1-sign(mins[i])*error_rel), upper_bound=maxs[i]*(1+sign(maxs[i])*error_rel))
+        JuMP.@variable(model, u[i = 1:my_game.n], lower_bound=mins[i]*(1-sign(mins[i])*error_rel), upper_bound=maxs[i]*(1+sign(maxs[i])*error_rel))
         # define auxiliary variable related with non-linear terms
         # generate all possible pure profiles of strategies
         profiles = Iterators.product((1:s for s in my_game.strat)...)
-        @variable(model, v[profile in profiles, i=1:my_game.n], lower_bound=min(0,my_game.utilities[profile...,i])*(1-sign(min(0,my_game.utilities[profile...,i]))*error_rel), upper_bound=max(0,my_game.utilities[profile...,i])*(1+sign(max(0,my_game.utilities[profile...,i]))*error_rel))
+        JuMP.@variable(model, v[profile in profiles, i=1:my_game.n], lower_bound=min(0,my_game.utilities[profile...,i])*(1-sign(min(0,my_game.utilities[profile...,i]))*error_rel), upper_bound=max(0,my_game.utilities[profile...,i])*(1+sign(max(0,my_game.utilities[profile...,i]))*error_rel))
 
         # auxiliary variables for piecewise linear approximation
         if method != 1
