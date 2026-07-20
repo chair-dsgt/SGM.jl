@@ -10,8 +10,9 @@ using Ipopt
 using PiecewiseLinApprox
 using PiecewiseLinearOpt
 
-include("IPG/IPG_structures.jl") 
-include("IPG/IPG_functions.jl")
+import IPG
+import IPG: search!, get_equilibrium, get_equilibria, get_termination_status
+
 include("time.jl")
 include("optimizer.jl")
 include("initialization.jl")
@@ -27,7 +28,7 @@ include("deviation.jl")
 
 
 """
-    search!(optimizer::SGM.Optimizer, model::IPGModel; enumeration::Bool = false, 
+    search!(optimizer::SGM.Optimizer, model::IPG.IPGModel; enumeration::Bool = false, 
                     max_iter::Integer=100, dev_tol::Float64=1e-3, time_limit::Float64=Inf)::Nothing
 
 Run the IPG solution algorithm implemented by `optimizer` on the IPG model `model`.
@@ -37,18 +38,18 @@ In that case, the optimizer must support equilibria enumeration.
 
 The result is stored in the optimizer and can be retrieved using `get_equilibrium`.
 """
-function search!(optimizer::Optimizer, model::IPGModel; 
+function search!(optimizer::Optimizer, model::IPG.IPGModel; 
                    enumeration::Bool = false, max_iter::Integer=100, dev_tol::Float64=1e-3, time_limit::Float64=Inf)::Nothing
                    
     timer = SGMTimer(time_limit)
 
     try
         if enumeration
-            optimizer.termination_status = INVALID_OPTION
+            optimizer.termination_status = IPG.INVALID_OPTION
             throw(ArgumentError("SGM.Optimizer does not support equilibria enumeration.")) 
         end
     
-        optimizer.termination_status = INTERRUPTED
+        optimizer.termination_status = IPG.INTERRUPTED
         optimizer.equilibrium = nothing
         players = model.players
         num_players = length(players)
@@ -62,7 +63,7 @@ function search!(optimizer::Optimizer, model::IPGModel;
         sampled_game = initialize_sampled_game(model, sampled_strategies, timer)
         check_time(timer)
     
-        optimizer.candidate_equilibria = Vector{Profile}()
+        optimizer.candidate_equilibria = Vector{IPG.Profile}()
         payoff_improvements = Vector{Tuple{Int,Float64}}()
         for iter in 1:max_iter
             ### Step 2: Solve sampled game
@@ -77,7 +78,7 @@ function search!(optimizer::Optimizer, model::IPGModel;
             check_time(timer)
     
             if payoff_improvement <= dev_tol # Equilibrium found
-                optimizer.termination_status = EQUILIBRIUM_FOUND
+                optimizer.termination_status = IPG.EQUILIBRIUM_FOUND
                 optimizer.equilibrium = candidate_equilibrium
                 return nothing
             end
@@ -90,12 +91,12 @@ function search!(optimizer::Optimizer, model::IPGModel;
 
         end
         
-        optimizer.termination_status = ITERATION_LIMIT
+        optimizer.termination_status = IPG.ITERATION_LIMIT
         return nothing
 
     catch error
         if error isa TimeLimitException
-            optimizer.termination_status = TIME_LIMIT
+            optimizer.termination_status = IPG.TIME_LIMIT
             return nothing
         end
 
