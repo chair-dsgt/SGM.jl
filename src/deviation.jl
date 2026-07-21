@@ -9,7 +9,7 @@ function find_deviation(model::IPG.IPGModel, profile::IPG.Profile, optimizer_fac
         check_time(timer)
         new_profile = IPG.Strategy[strategy.id == player_id ? new_strategy : strategy for strategy in profile]
 
-        payoff_improvement = IPG.payoff(model, player_id, new_profile) - IPG.payoff(model, player_id, profile)
+        payoff_improvement = IPG.comparable_payoff_value(model, player_id, new_profile) - IPG.comparable_payoff_value(model, player_id, profile)
         check_time(timer)
 
         if payoff_improvement > dev_tol
