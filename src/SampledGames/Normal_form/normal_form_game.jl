@@ -34,7 +34,7 @@ function get_normal_form(model::IPG.IPGModel, strategies::Vector{Vector{IPG.Pure
         check_time(timer)
 
         for player_id in 1:num_players
-            utilities[profile_ids..., player_id] = IPG.payoff(model, player_id, profile)
+            utilities[profile_ids..., player_id] = IPG.comparable_payoff_value(model, player_id, profile)
             check_time(timer)
         end
     end

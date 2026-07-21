@@ -146,10 +146,9 @@ using TestItems
         z1_param3 = JuMP.@variable(player_3, set = Parameter(0.0), base_name = "z1")
         z2_param3 = JuMP.@variable(player_3, set = Parameter(0.0), base_name = "z2")
 
-        # Example in article is a minimization problem, but current the current implementation only supports maximization
-        @objective(player_1, Max, -(y1^2 - y3_param1 * y1 + y3_param1 * z1 - (8 * z3_param1 - 1) * z1))
-        @objective(player_2, Max, -(y2^2 - y3_param2 * y2 + y3_param2 * z2 + (30 * z3_param2 + 1) * z2))
-        @objective(player_3, Max, -((z1_param3 - z2_param3 - 1/2) * z3))
+        @objective(player_1, Min, y1^2 - y3_param1 * y1 + y3_param1 * z1 - (8 * z3_param1 - 1) * z1)
+        @objective(player_2, Min, y2^2 - y3_param2 * y2 + y3_param2 * z2 + (30 * z3_param2 + 1) * z2)
+        @objective(player_3, Min, (z1_param3 - z2_param3 - 1/2) * z3)
 
         players = [player_1, player_2, player_3]
         var_to_param_maps = [
@@ -180,10 +179,9 @@ using TestItems
         IPG.@variable(model, 3, -5 <= y3 <= 4)
         IPG.@variable(model, 3, z3, Bin)
     
-        # Example in article is a minimization problem, but current the current implementation only supports maximization
-        IPG.@payoff(model, 1, Max, -(y1^2 - y3 * y1 + y3 * z1 - (8 * z3 - 1) * z1))
-        IPG.@payoff(model, 2, Max, -(y2^2 - y3 * y2 + y3 * z2 + (30 * z3 + 1) * z2))
-        IPG.@payoff(model, 3, Max, -((z1 - z2 - 1/2) * z3))
+        IPG.@payoff(model, 1, Min, y1^2 - y3 * y1 + y3 * z1 - (8 * z3 - 1) * z1)
+        IPG.@payoff(model, 2, Min, y2^2 - y3 * y2 + y3 * z2 + (30 * z3 + 1) * z2)
+        IPG.@payoff(model, 3, Min, (z1 - z2 - 1/2) * z3)
     
         return model
     end

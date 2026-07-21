@@ -24,8 +24,8 @@ function get_polymatrix_twoplayers(game::IPG.IPGModel, strategies::Vector{Vector
         for i2 in eachindex(strategies[2])
             check_time(timer)
             profile = [strategies[1][i1], strategies[2][i2]]
-            polymatrix[(1,2)][i1,i2] = IPG.payoff(game, 1, profile)
-            polymatrix[(2,1)][i2,i1] = IPG.payoff(game, 2, profile)
+            polymatrix[(1,2)][i1,i2] = IPG.comparable_payoff_value(game, 1, profile)
+            polymatrix[(2,1)][i2,i1] = IPG.comparable_payoff_value(game, 2, profile)
         end
     end
 
@@ -126,7 +126,7 @@ function compute_self_payoff(game::IPG.IPGModel, player_id::Int, strategy::IPG.P
         end
     end
 
-    return Float64(payoff_value)
+    return IPG.comparable_payoff_value(game, player_id, payoff_value)
 end
 
 function compute_bilateral_payoff(game::IPG.IPGModel, player_id::Int, player_strategy::IPG.PureStrategy, other_strategy::IPG.PureStrategy)::Float64
@@ -163,5 +163,5 @@ function compute_bilateral_payoff(game::IPG.IPGModel, player_id::Int, player_str
         end
     end
 
-    return Float64(payoff_value)
+    return IPG.comparable_payoff_value(game, player_id, payoff_value)
 end
