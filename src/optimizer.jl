@@ -28,7 +28,7 @@ This function can only be called after `search!` has been called.
 """
 function get_equilibrium(optimizer::Optimizer)::IPG.Profile
     if optimizer.equilibrium === nothing
-        error("No equilibrium is available; find_equilibrium! must be called first")
+        error("No equilibrium is available")
     end
     
     return optimizer.equilibrium
@@ -36,7 +36,7 @@ end
 function get_equilibrium(optimizer::Optimizer, i::Int)::IPG.Profile
     if i == 1
         if optimizer.equilibrium === nothing
-            error("No equilibrium is available; find_equilibrium! must be called first")
+            error("No equilibrium is available")
         end
     
     return optimizer.equilibrium
