@@ -154,6 +154,91 @@ end
     @test only(eq[2].probs) ≈ 1.0
 end
 
+@testitem "Example 5.3 two-player game with named players" setup = [Utilities] begin     # From "Computing equilibria for integer programming games"
+    using Gurobi
+    using IPG
+
+    a = 0.1
+    E_true = 1e-6
+    E_SGM = (1 - a) * E_true
+    E_MIP = a * E_true
+
+    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
+
+    game = get_example_two_player_game_with_names(optimizer = SGM.Optimizer(gurobi, nothing))
+
+    @test game isa IPG.IPGModel
+    @test length(game.players) == 2
+    @test length(game.var_to_param_maps) == 2
+
+    player_1_variables = IPG.get_player_variables(game.players[1])
+    player_2_variables = IPG.get_player_variables(game.players[2])
+
+    @test IPG.get_player_id(game, "Player1") == 1
+    @test IPG.get_player_id(game, "Player2") == 2
+    @test game.name_to_id_map["Player1"] == 1
+    @test game.name_to_id_map["Player2"] == 2
+
+    @test length(player_1_variables) == 1
+    @test length(player_2_variables) == 1
+    @test JuMP.start_value(only(player_1_variables)) == 10.0
+    @test JuMP.start_value(only(player_2_variables)) == 10.0
+
+    @test haskey(game.var_to_param_maps[1], only(player_2_variables))
+    @test haskey(game.var_to_param_maps[2], only(player_1_variables))
+    @test JuMP.is_parameter(game.var_to_param_maps[1][only(player_2_variables)])
+    @test JuMP.is_parameter(game.var_to_param_maps[2][only(player_1_variables)])
+
+    @test IPG.termination_status(game) == IPG.SOLVE_NOT_CALLED
+
+    @test IPG.find_equilibrium!(game; dev_tol=E_SGM) === nothing
+
+    @test IPG.termination_status(game) == IPG.EQUILIBRIUM_FOUND
+
+    eq = IPG.equilibrium(game)
+
+    @test eq isa IPG.Profile
+
+    candidate_equilibria = game.optimizer.candidate_equilibria
+    
+    @test [[only(profile[1].supp).variable_values[only(player_1_variables)]] for profile in candidate_equilibria[1:5]] ≈ [
+        [10.0],
+        [5.0],
+        [5.0],
+        [1.25],
+        [1.25]
+    ]
+    
+    @test [[only(profile[2].supp).variable_values[only(player_2_variables)]] for profile in candidate_equilibria[1:5]] ≈ [
+        [10.0],
+        [10.0],
+        [2.5],
+        [2.5],
+        [0.625]
+    ]
+
+    @test IPG.equilibrium(game; player = "Player1") == eq[1]
+    @test IPG.equilibrium(game; player = "Player2") == eq[2]
+    @test IPG.payoff(game, "Player1", eq) ≈ IPG.payoff(game, 1, eq)
+    @test IPG.payoff(game, "Player2", eq) ≈ IPG.payoff(game, 2, eq)
+
+    for player in keys(game.name_to_id_map)
+        A_i = IPG.payoff(game, player, eq)
+    
+        player_id = IPG.get_player_id(game, player)
+        eq_others = IPG.Strategy[strategy for strategy in eq if strategy.id != player_id]
+        best_response_strat = IPG.best_response(game, player, eq_others, game.optimizer.best_response_optimizer)
+        new_profile = IPG.Strategy[strategy.id == player_id ? best_response_strat : strategy for strategy in eq]
+    
+        B_i = IPG.payoff(game, player, new_profile)
+    
+        @test abs(A_i - B_i) <= E_true
+    end
+
+    @test only(eq[1].probs) ≈ 1.0
+    @test only(eq[2].probs) ≈ 1.0
+end
+
 @testitem "Rock-paper-scissors game" setup = [Utilities] begin
     using Gurobi
     using IPG

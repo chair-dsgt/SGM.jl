@@ -36,12 +36,13 @@ using TestItems
         @objective(player_2, Max, player_payoff(x2, x1_parameter))
 
         players = [player_1, player_2]
+        name_to_id_map = Dict{String, Int}()
         var_to_param_maps = [
             Dict(x2 => x2_parameter),
             Dict(x1 => x1_parameter),
         ]
 
-        return IPG.IPGModel(players, var_to_param_maps, optimizer)
+        return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, optimizer)
     end
 
     function get_example_two_player_game_usingIPG(; optimizer = SGM.Optimizer(nothing, nothing))
@@ -59,6 +60,25 @@ using TestItems
 
         IPG.@payoff(model, 1, Max, player_payoff(x1, x2))
         IPG.@payoff(model, 2, Max, player_payoff(x2, x1))
+
+        return model
+    end
+
+    function get_example_two_player_game_with_names(; optimizer = SGM.Optimizer(nothing, nothing))
+        model = IPG.IPGModel(["Player1", "Player2"], optimizer)
+
+        IPG.@variable(model, "Player1", x1, start = 10.0)
+        IPG.@constraint(model, "Player1", x1 >= 0)
+
+        IPG.@variable(model, "Player2", x2, start = 10.0)
+        IPG.@constraint(model, "Player2", x2 >= 0)
+
+        function player_payoff(x_self, x_other)
+            return -x_self * x_self + x_self * x_other
+        end
+
+        IPG.@payoff(model, "Player1", Max, player_payoff(x1, x2))
+        IPG.@payoff(model, "Player2", Max, player_payoff(x2, x1))
 
         return model
     end
@@ -88,6 +108,7 @@ using TestItems
         @objective(player_2, Max, r1_parameter * p2 - r1_parameter * s2 - p1_parameter * r2 + p1_parameter * s2 + s1_parameter * r2 - s1_parameter * p2)
 
         players = [player_1, player_2]
+        name_to_id_map = Dict{String, Int}()
         var_to_param_maps = [
             Dict(r2 => r2_parameter,
                  p2 => p2_parameter,
@@ -97,7 +118,7 @@ using TestItems
                  s1 => s1_parameter),
         ]
 
-        return IPG.IPGModel(players, var_to_param_maps, optimizer)
+        return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, optimizer)
     end
 
     function get_rock_paper_scissors_game_usingIPG(; optimizer = SGM.Optimizer(nothing,nothing))
@@ -151,6 +172,7 @@ using TestItems
         @objective(player_3, Min, (z1_param3 - z2_param3 - 1/2) * z3)
 
         players = [player_1, player_2, player_3]
+        name_to_id_map = Dict{String, Int}()
         var_to_param_maps = [
             Dict(y3 => y3_param1,
                  z3 => z3_param1),
@@ -160,7 +182,7 @@ using TestItems
                  z2 => z2_param3),
         ]
 
-        return IPG.IPGModel(players, var_to_param_maps, optimizer)
+        return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, optimizer)
     end
 
     function get_example_three_player_game_usingIPG(; optimizer = SGM.Optimizer(nothing, nothing))
