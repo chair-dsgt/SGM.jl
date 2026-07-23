@@ -116,11 +116,25 @@ function esgm_search!(optimizer::Optimizer, model::IPG.IPGModel, max_iter::Integ
     
     # eSGM algorithm:
     
-    ### Step 1: Initialization of sampled game
+    ### Initialization of sampled game
     sampled_strategies = initialize_strategies(players, num_players, optimizer.best_response_optimizer, timer)
     check_time(timer)
     sampled_game = initialize_sampled_game(model, sampled_strategies, timer)
     check_time(timer)
+
+    optimizer.equilibria = Vector{IPG.Profile}()
+    optimizer.candidate_equilibria = Vector{IPG.Profile}()
+    payoff_improvements = Vector{Tuple{Int,Float64}}()
+
+    for iter in 1:max_iter
+        ### Master problem
+        candidate_equilibria = solve_all(sampled_game, optimizer.equilibrium_computation_optimizer, timer)
+        
+        check_time(timer)
+        append!(optimizer.candidate_equilibria, candidate_equilibria)
+
+    end
+
 
 
     return nothing
