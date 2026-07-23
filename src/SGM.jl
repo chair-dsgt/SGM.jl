@@ -110,7 +110,18 @@ function sgm_search!(optimizer::Optimizer, model::IPG.IPGModel, max_iter::Intege
 end
 
 function esgm_search!(optimizer::Optimizer, model::IPG.IPGModel, max_iter::Integer, dev_tol::Float64, timer::SGMTimer)::Nothing
-    # TODO: Implement eSGM algorithm
+    players = model.players
+    num_players = length(players)
+    check_time(timer)
+    
+    # eSGM algorithm:
+    
+    ### Step 1: Initialization of sampled game
+    sampled_strategies = initialize_strategies(players, num_players, optimizer.best_response_optimizer, timer)
+    check_time(timer)
+    sampled_game = initialize_sampled_game(model, sampled_strategies, timer)
+    check_time(timer)
+
 
     return nothing
 end
