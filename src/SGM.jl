@@ -129,12 +129,41 @@ function esgm_search!(optimizer::Optimizer, model::IPG.IPGModel, max_iter::Integ
     for iter in 1:max_iter
         ### Master problem
         candidate_equilibria = solve_all(sampled_game, optimizer.equilibrium_computation_optimizer, timer)
-        
+
         check_time(timer)
         append!(optimizer.candidate_equilibria, candidate_equilibria)
 
-    end
+        ### Subproblem 1
+        new_strategies = Vector{IPG.PureStrategy}()
+        player_order = get_player_order(num_players, payoff_improvements)
+        check_time(timer)
 
+        for candidate_equilibrium in candidate_equilibria
+            deviations = find_deviations(model, candidate_equilibrium, optimizer.best_response_optimizer, timer, player_order, dev_tol)
+            check_time(timer)
+
+            if isempty(deviations) # Equilibrium found
+                push!(optimizer.equilibria, candidate_equilibrium)
+            else
+                for (payoff_improvement, player_id, new_strategy) in deviations
+                    push!(new_strategies, new_strategy)
+                    push!(payoff_improvements, (player_id, payoff_improvement))
+                end
+            end
+        end
+
+        if !isempty(new_strategies)
+            # Increase sample
+            for new_strategy in new_strategies
+                player_id = new_strategy.id
+                push!(sampled_game.strategy_sample[player_id], new_strategy)
+                update_sampled_game!(sampled_game, player_id, model, timer)
+                check_time(timer)
+            end
+
+            continue
+        end
+    end
 
 
     return nothing
