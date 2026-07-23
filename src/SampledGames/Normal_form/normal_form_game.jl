@@ -42,8 +42,37 @@ function get_normal_form(model::IPG.IPGModel, strategies::Vector{Vector{IPG.Pure
     return NGame(num_players, num_strategies, utilities)
 end
 
+# Expects that only one strategy was added for player p, and that it was added at the end of the strategy vector.
 function update_sampled_game!(normal_form_sampled_game::NormalFormSampledGame, p::Int, model::IPG.IPGModel, timer::SGMTimer)::Nothing
-    normal_form_sampled_game.nGame = get_normal_form(model, normal_form_sampled_game.strategy_sample, timer) # TODO: Make this more efficient
+    new_strategies = normal_form_sampled_game.strategy_sample
+    new_num_strategies = length.(new_strategies)
+    new_strategy_id = new_num_strategies[p] # The new strategy is always added at the end of the strategy vector
+    old_ngame = normal_form_sampled_game.nGame
+    num_players = old_ngame.n
+
+    new_utilities = zeros(new_num_strategies..., num_players)
+
+    old_strategy_ranges = [1:s for s in old_ngame.strat]
+    new_utilities[old_strategy_ranges..., :] .= old_ngame.utilities # Copy old utilities into new utility array
+
+    new_strategy_ranges = [player_id == p ? (new_strategy_id:new_strategy_id) : 1:new_num_strategies[player_id] for player_id in 1:num_players]
+
+    for profile_ids in Iterators.product(new_strategy_ranges...)
+        check_time(timer)
+        profile = IPG.PureStrategy[]
+        for player_id in 1:num_players
+            strategy_id = profile_ids[player_id]
+            push!(profile, new_strategies[player_id][strategy_id])
+        end
+        check_time(timer)
+
+        for player_id in 1:num_players
+            new_utilities[profile_ids..., player_id] = IPG.comparable_payoff_value(model, player_id, profile)
+            check_time(timer)
+        end
+    end
+
+    normal_form_sampled_game.nGame = NGame(num_players, new_num_strategies, new_utilities)
 
     return nothing
 end
