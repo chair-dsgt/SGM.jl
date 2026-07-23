@@ -19,3 +19,7 @@ end
 function solve(sampled_game::NormalFormSampledGame, optimizer_factory, timer::SGMTimer)::IPG.Profile
     return solve_normal_form(sampled_game, optimizer_factory, timer) 
 end
+
+function solve_all(sampled_game::NormalFormSampledGame, optimizer_factory, timer::SGMTimer)::IPG.Profile
+    error("Equilibria enumeration is not yet implemented for normal-form sampled games.")
+end
