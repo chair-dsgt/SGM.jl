@@ -1,6 +1,4 @@
 using Gurobi, Juniper, Ipopt
-using PiecewiseLinApprox
-using PiecewiseLinearOpt
 
 # Function to compute Nash equilibria for a NGame instance
 """
@@ -56,6 +54,7 @@ function compute_nash_equilibria(my_game::NGame,method::Int=1, timelimit::Float6
         # Restrict to one thread
         MOI.set(model, MOI.NumberOfThreads(), 1)
 
+        """
         # compute pwl for log(x) if method != 1
         if method != 1
             @assert error_rel ≥ 0 "error_rel must be non-negative"
@@ -84,6 +83,7 @@ function compute_nash_equilibria(my_game::NGame,method::Int=1, timelimit::Float6
             x_pts_under = pushfirst!(x_pts_under, 0) # we add manually zero
             x_pts_over = pushfirst!(x_pts_over, 0) # we add manually zero
         end
+        """
 
         # Minimum and maximum utility of each player
         # For each player i, find the minimum utility across all profiles for that player
@@ -102,6 +102,7 @@ function compute_nash_equilibria(my_game::NGame,method::Int=1, timelimit::Float6
         profiles = Iterators.product((1:s for s in my_game.strat)...)
         JuMP.@variable(model, v[profile in profiles, i=1:my_game.n], lower_bound=min(0,my_game.utilities[profile...,i])*(1-sign(min(0,my_game.utilities[profile...,i]))*error_rel), upper_bound=max(0,my_game.utilities[profile...,i])*(1+sign(max(0,my_game.utilities[profile...,i]))*error_rel))
 
+        """
         # auxiliary variables for piecewise linear approximation
         if method != 1
             # define auxiliary variables for piecewise linear approximation
@@ -118,7 +119,7 @@ function compute_nash_equilibria(my_game::NGame,method::Int=1, timelimit::Float6
             end
             v_over = Dict{Tuple{Tuple{Vararg{Int}}, Int}, Any}()
             v_under = Dict{Tuple{Tuple{Vararg{Int}}, Int}, Any}()
-        end
+        end"""
 
         # Constraints
         # if x>0 then y=1
@@ -142,7 +143,7 @@ function compute_nash_equilibria(my_game::NGame,method::Int=1, timelimit::Float6
                     @constraint(model, v[profile, i] == my_game.utilities[profile..., i]*prod(x[j][profile[j]] for j in 1:my_game.n if j != i))
                 end
             else
-                model = pwl_formulation(my_game, model, i, profiles, x_pts_under, x_pts_over, y_pts_under, y_pts_over, z_under, z_over, v_under, v_over, v, methodpwl)
+                #model = pwl_formulation(my_game, model, i, profiles, x_pts_under, x_pts_over, y_pts_under, y_pts_over, z_under, z_over, v_under, v_over, v, methodpwl)
             end
         end
     end
@@ -176,23 +177,6 @@ function compute_nash_equilibria(my_game::NGame,method::Int=1, timelimit::Float6
         println("Model is not solved and/or not feasible.")
         return "NaN","NaN","NaN", "NaN", model, y, u, x, "tl"
     end
-end
-
-function pwl_formulation(my_game::NGame, model::JuMP.Model, i, profiles, x_pts_under, x_pts_over, y_pts_under, y_pts_over, z_under, z_over, v_under, v_over, v, methodpwl=:Logarithmic)
-    for profile in profiles
-        if my_game.utilities[profile..., i] == 0
-            @constraint(model, v[profile,i] == 0)
-        else
-            # a*sum(x[j][profile[j]] for j in 1:my_game.n if j != i)+b <= c*(v[profile,i]/my_game.utilities[profile..., i])+d
-            v_over[profile,i] = PiecewiseLinearOpt.piecewiselinear(model, v[profile,i]/my_game.utilities[profile..., i], x_pts_over, y_pts_over; method = methodpwl)
-            @constraint(model, sum(z_under[j][profile[j]] for j in 1:my_game.n if j != i) <= v_over[profile,i])
-
-            # c*sum(x[j][profile[j]] for j in 1:my_game.n if j != i)+d >= a*(v[profile,i]/my_game.utilities[profile..., i])+b
-            v_under[profile,i] = PiecewiseLinearOpt.piecewiselinear(model, v[profile,i]/my_game.utilities[profile..., i], x_pts_under, y_pts_under; method = methodpwl)
-            @constraint(model, v_under[profile,i] <= sum(z_over[j][profile[j]] for j in 1:my_game.n if j != i))
-        end
-    end
-    return model
 end
 
 function auxiliary_profiles(my_game::NGame, profiles)
