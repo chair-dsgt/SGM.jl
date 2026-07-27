@@ -11,7 +11,7 @@ using PiecewiseLinApprox
 using PiecewiseLinearOpt
 
 import IPG
-import IPG: search!, get_equilibrium, get_equilibria, get_termination_status
+import IPG: search!, get_equilibrium, get_equilibria, get_termination_status, supports_enumeration
 
 include("time.jl")
 include("optimizer.jl")
@@ -81,7 +81,7 @@ function sgm_search!(optimizer::Optimizer, model::IPG.IPGModel, max_iter::Intege
     payoff_improvements = Vector{Tuple{Int,Float64}}()
     for iter in 1:max_iter
         ### Step 2: Solve sampled game
-        candidate_equilibrium = solve(sampled_game, optimizer.equilibrium_computation_optimizer, timer)
+        candidate_equilibrium = solve(sampled_game, timer)
         check_time(timer)
         push!(optimizer.candidate_equilibria, candidate_equilibrium)
     

@@ -17,7 +17,7 @@ end
 
     gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
 
-    game = get_example_two_player_game(optimizer = SGM.Optimizer(gurobi, nothing))
+    game = get_example_two_player_game(optimizer = SGM.Optimizer(gurobi))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 2
@@ -91,7 +91,7 @@ end
 
     gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
 
-    game = get_example_two_player_game_usingIPG(optimizer = SGM.Optimizer(gurobi, nothing))
+    game = get_example_two_player_game_usingIPG(optimizer = SGM.Optimizer(gurobi))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 2
@@ -165,7 +165,7 @@ end
 
     gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
 
-    game = get_example_two_player_game_with_names(optimizer = SGM.Optimizer(gurobi, nothing))
+    game = get_example_two_player_game_with_names(optimizer = SGM.Optimizer(gurobi))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 2
@@ -250,7 +250,7 @@ end
 
     gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
 
-    game = get_rock_paper_scissors_game(optimizer = SGM.Optimizer(gurobi, nothing))
+    game = get_rock_paper_scissors_game(optimizer = SGM.Optimizer(gurobi))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 2
@@ -322,7 +322,7 @@ end
 
     gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
 
-    game = get_rock_paper_scissors_game_usingIPG(optimizer = SGM.Optimizer(gurobi, nothing))
+    game = get_rock_paper_scissors_game_usingIPG(optimizer = SGM.Optimizer(gurobi))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 2
@@ -394,7 +394,7 @@ end
 
     gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
 
-    game = get_example_three_player_game(optimizer = SGM.Optimizer(gurobi, nothing))
+    game = get_example_three_player_game(optimizer = SGM.Optimizer(gurobi))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 3
@@ -438,7 +438,7 @@ end
 
     gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
 
-    game = get_example_three_player_game_usingIPG(optimizer = SGM.Optimizer(gurobi, nothing))
+    game = get_example_three_player_game_usingIPG(optimizer = SGM.Optimizer(gurobi))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 3

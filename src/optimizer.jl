@@ -1,14 +1,12 @@
 mutable struct Optimizer <: IPG.IPGOptimizer 
     best_response_optimizer
-    equilibrium_computation_optimizer # Unnecessary? => our equilibrium computation solvers don't use it (they all use their own optimizer)
     termination_status::IPG.TerminationStatusCode
     equilibrium::Union{Nothing,IPG.Profile}
     equilibria::Vector{IPG.Profile}
     candidate_equilibria::Vector{IPG.Profile}
-    function Optimizer(best_response_optimizer, equilibrium_computation_optimizer)
+    function Optimizer(best_response_optimizer)
         return new(
             best_response_optimizer,
-            equilibrium_computation_optimizer,
             IPG.SOLVE_NOT_CALLED,
             nothing,
             IPG.Profile[],
