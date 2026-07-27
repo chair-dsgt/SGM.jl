@@ -4,7 +4,6 @@ mutable struct Optimizer <: IPG.IPGOptimizer
     termination_status::IPG.TerminationStatusCode
     equilibrium::Union{Nothing,IPG.Profile}
     equilibria::Vector{IPG.Profile}
-    supports_enumeration::Bool
     candidate_equilibria::Vector{IPG.Profile}
     function Optimizer(best_response_optimizer, equilibrium_computation_optimizer)
         return new(
@@ -13,7 +12,6 @@ mutable struct Optimizer <: IPG.IPGOptimizer
             IPG.SOLVE_NOT_CALLED,
             nothing,
             IPG.Profile[],
-            true,
             IPG.Profile[])
     end
 end
@@ -81,4 +79,13 @@ Return an `IPG.TerminationStatusCode` describing why the SGM solver stopped.
 """
 function get_termination_status(optimizer::Optimizer)::IPG.TerminationStatusCode
     return optimizer.termination_status
+end
+
+"""
+    supports_enumeration(optimizer::Optimizer)::Bool
+
+Return `true` if `optimizer` supports enumeration and return `false` otherwise.
+"""
+function supports_enumeration(optimizer::Optimizer)::Bool
+    return true
 end
