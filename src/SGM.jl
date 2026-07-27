@@ -7,8 +7,6 @@ using LinearAlgebra
 using Gurobi
 using Juniper
 using Ipopt
-using PiecewiseLinApprox
-using PiecewiseLinearOpt
 
 import IPG
 import IPG: search!, get_equilibrium, get_equilibria, get_termination_status, supports_enumeration
