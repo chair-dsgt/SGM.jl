@@ -16,7 +16,7 @@ using TestItems
         return optimizer
     end
 
-    function get_example_two_player_game(; optimizer = SGM.Optimizer(nothing, nothing))
+    function get_example_two_player_game(; optimizer = SGM.Optimizer(nothing))
         player_1 = Model()
         JuMP.@variable(player_1, x1, start = 10.0)
         JuMP.@constraint(player_1, x1 >= 0)
@@ -45,7 +45,7 @@ using TestItems
         return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, optimizer)
     end
 
-    function get_example_two_player_game_usingIPG(; optimizer = SGM.Optimizer(nothing, nothing))
+    function get_example_two_player_game_usingIPG(; optimizer = SGM.Optimizer(nothing))
         model = IPG.IPGModel(2, optimizer)
 
         IPG.@variable(model, 1, x1, start = 10.0)
@@ -64,7 +64,7 @@ using TestItems
         return model
     end
 
-    function get_example_two_player_game_with_names(; optimizer = SGM.Optimizer(nothing, nothing))
+    function get_example_two_player_game_with_names(; optimizer = SGM.Optimizer(nothing))
         model = IPG.IPGModel(["Player1", "Player2"], optimizer)
 
         IPG.@variable(model, "Player1", x1, start = 10.0)
@@ -83,7 +83,7 @@ using TestItems
         return model
     end
 
-    function get_rock_paper_scissors_game(; optimizer = SGM.Optimizer(nothing,nothing))
+    function get_rock_paper_scissors_game(; optimizer = SGM.Optimizer(nothing))
         player_1 = Model()
         JuMP.@variable(player_1, r1, Bin, start = 1.0)
         JuMP.@variable(player_1, p1, Bin, start = 0.0)
@@ -121,7 +121,7 @@ using TestItems
         return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, optimizer)
     end
 
-    function get_rock_paper_scissors_game_usingIPG(; optimizer = SGM.Optimizer(nothing,nothing))
+    function get_rock_paper_scissors_game_usingIPG(; optimizer = SGM.Optimizer(nothing))
         model = IPG.IPGModel(2)
         IPG.set_optimizer!(model, optimizer)
 
@@ -141,7 +141,7 @@ using TestItems
         return model
     end
 
-    function get_example_three_player_game(; optimizer = SGM.Optimizer(nothing, nothing))
+    function get_example_three_player_game(; optimizer = SGM.Optimizer(nothing))
         player_1 = Model()
         JuMP.@variable(player_1, y1)
         JuMP.@variable(player_1, z1, Bin)
@@ -185,7 +185,7 @@ using TestItems
         return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, optimizer)
     end
 
-    function get_example_three_player_game_usingIPG(; optimizer = SGM.Optimizer(nothing, nothing))
+    function get_example_three_player_game_usingIPG(; optimizer = SGM.Optimizer(nothing))
         model = IPG.IPGModel(3, optimizer)
         
         IPG.@variable(model, 1, y1)
