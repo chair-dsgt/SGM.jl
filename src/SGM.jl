@@ -33,7 +33,7 @@ Run the IPG solution algorithm implemented by `equilibrium_solver` on the IPG mo
 If `enumeration` is `false`, the equilibrium solver searches for one equilibrium. If `enumeration` is `true`, the equilibrium solver searches for all equilibria. 
 In that case, the equilibrium solver must support equilibria enumeration. 
 
-The result is stored in the optimizer and can be retrieved using `get_equilibrium` or `get_equilibria`.
+The result is stored in the equilibrium solver and can be retrieved using `get_equilibrium` or `get_equilibria`.
 """
 function search!(equilibrium_solver::EquilibriumSolver, model::IPG.IPGModel; 
     enumeration::Bool = false, max_iter::Integer=100, dev_tol::Float64=1e-3, time_limit::Float64=Inf)::Nothing
@@ -107,7 +107,7 @@ function sgm_search!(equilibrium_solver::EquilibriumSolver, model::IPG.IPGModel,
     return nothing
 end
 
-function esgm_search!(optimizer::Optimizer, model::IPG.IPGModel, max_iter::Integer, dev_tol::Float64, timer::SGMTimer)::Nothing
+function esgm_search!(equilibrium_solver::EquilibriumSolver, model::IPG.IPGModel, max_iter::Integer, dev_tol::Float64, timer::SGMTimer)::Nothing
     players = model.players
     num_players = length(players)
     check_time(timer)
@@ -115,21 +115,21 @@ function esgm_search!(optimizer::Optimizer, model::IPG.IPGModel, max_iter::Integ
     # eSGM algorithm:
     
     ### Initialization of sampled game
-    sampled_strategies = initialize_strategies(players, num_players, optimizer.best_response_optimizer, timer)
+    sampled_strategies = initialize_strategies(players, num_players, equilibrium_solver.best_response_optimizer, timer)
     check_time(timer)
     sampled_game = initialize_sampled_game(model, sampled_strategies, timer)
     check_time(timer)
 
-    optimizer.equilibria = Vector{IPG.Profile}()
-    optimizer.candidate_equilibria = Vector{IPG.Profile}()
+    equilibrium_solver.equilibria = Vector{IPG.Profile}()
+    equilibrium_solver.candidate_equilibria = Vector{IPG.Profile}()
     payoff_improvements = Vector{Tuple{Int,Float64}}()
 
     for iter in 1:max_iter
         ### Master problem
-        candidate_equilibria = solve_all(sampled_game, optimizer.equilibrium_computation_optimizer, timer)
+        candidate_equilibria = solve_all(sampled_game, timer)
 
         check_time(timer)
-        append!(optimizer.candidate_equilibria, candidate_equilibria)
+        append!(equilibrium_solver.candidate_equilibria, candidate_equilibria)
 
         ### Subproblem 1
         new_strategies = Vector{IPG.PureStrategy}()
@@ -137,11 +137,11 @@ function esgm_search!(optimizer::Optimizer, model::IPG.IPGModel, max_iter::Integ
         check_time(timer)
 
         for candidate_equilibrium in candidate_equilibria
-            deviations = find_deviations(model, candidate_equilibrium, optimizer.best_response_optimizer, timer, player_order, dev_tol)
+            deviations = find_deviations(model, candidate_equilibrium, equilibrium_solver.best_response_optimizer, timer, player_order, dev_tol)
             check_time(timer)
 
             if isempty(deviations) # Equilibrium found
-                push!(optimizer.equilibria, candidate_equilibrium)
+                push!(equilibrium_solver.equilibria, candidate_equilibrium)
             else
                 for (payoff_improvement, player_id, new_strategy) in deviations
                     push!(new_strategies, new_strategy)
