@@ -16,7 +16,7 @@ using TestItems
         return optimizer
     end
 
-    function get_example_two_player_game(; optimizer = SGM.Optimizer(nothing))
+    function get_example_two_player_game(; equilibrium_solver = SGM.EquilibriumSolver(nothing))
         player_1 = Model()
         JuMP.@variable(player_1, x1, start = 10.0)
         JuMP.@constraint(player_1, x1 >= 0)
@@ -42,11 +42,11 @@ using TestItems
             Dict(x1 => x1_parameter),
         ]
 
-        return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, optimizer)
+        return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, equilibrium_solver)
     end
 
-    function get_example_two_player_game_usingIPG(; optimizer = SGM.Optimizer(nothing))
-        model = IPG.IPGModel(2, optimizer)
+    function get_example_two_player_game_usingIPG(; equilibrium_solver = SGM.EquilibriumSolver(nothing))
+        model = IPG.IPGModel(2, equilibrium_solver)
 
         IPG.@variable(model, 1, x1, start = 10.0)
         IPG.@constraint(model, 1, x1 >= 0)
@@ -64,8 +64,8 @@ using TestItems
         return model
     end
 
-    function get_example_two_player_game_with_names(; optimizer = SGM.Optimizer(nothing))
-        model = IPG.IPGModel(["Player1", "Player2"], optimizer)
+    function get_example_two_player_game_with_names(; equilibrium_solver = SGM.EquilibriumSolver(nothing))
+        model = IPG.IPGModel(["Player1", "Player2"], equilibrium_solver)
 
         IPG.@variable(model, "Player1", x1, start = 10.0)
         IPG.@constraint(model, "Player1", x1 >= 0)
@@ -83,7 +83,7 @@ using TestItems
         return model
     end
 
-    function get_rock_paper_scissors_game(; optimizer = SGM.Optimizer(nothing))
+    function get_rock_paper_scissors_game(; equilibrium_solver = SGM.EquilibriumSolver(nothing))
         player_1 = Model()
         JuMP.@variable(player_1, r1, Bin, start = 1.0)
         JuMP.@variable(player_1, p1, Bin, start = 0.0)
@@ -118,12 +118,12 @@ using TestItems
                  s1 => s1_parameter),
         ]
 
-        return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, optimizer)
+        return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, equilibrium_solver)
     end
 
-    function get_rock_paper_scissors_game_usingIPG(; optimizer = SGM.Optimizer(nothing))
+    function get_rock_paper_scissors_game_usingIPG(; equilibrium_solver = SGM.EquilibriumSolver(nothing))
         model = IPG.IPGModel(2)
-        IPG.set_optimizer!(model, optimizer)
+        IPG.set_solver!(model, equilibrium_solver)
 
         IPG.@variable(model, 1, r1, Bin, start = 1.0)
         IPG.@variable(model, 1, p1, Bin, start = 0.0)
@@ -141,7 +141,7 @@ using TestItems
         return model
     end
 
-    function get_example_three_player_game(; optimizer = SGM.Optimizer(nothing))
+    function get_example_three_player_game(; equilibrium_solver = SGM.EquilibriumSolver(nothing))
         player_1 = Model()
         JuMP.@variable(player_1, y1)
         JuMP.@variable(player_1, z1, Bin)
@@ -182,11 +182,11 @@ using TestItems
                  z2 => z2_param3),
         ]
 
-        return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, optimizer)
+        return IPG.IPGModel(players, name_to_id_map, var_to_param_maps, equilibrium_solver)
     end
 
-    function get_example_three_player_game_usingIPG(; optimizer = SGM.Optimizer(nothing))
-        model = IPG.IPGModel(3, optimizer)
+    function get_example_three_player_game_usingIPG(; equilibrium_solver = SGM.EquilibriumSolver(nothing))
+        model = IPG.IPGModel(3, equilibrium_solver)
         
         IPG.@variable(model, 1, y1)
         IPG.@variable(model, 1, z1, Bin)
