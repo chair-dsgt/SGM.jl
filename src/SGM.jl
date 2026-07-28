@@ -22,6 +22,7 @@ include("SampledGames/Normal_form/solve.jl")
 include("SampledGames/sampled_game_initialization.jl")
 include("player_order.jl")
 include("deviation.jl")
+include("candidate_solutions.jl")
 
 
 """
@@ -161,9 +162,31 @@ function esgm_search!(equilibrium_solver::EquilibriumSolver, model::IPG.IPGModel
 
             continue
         end
+
+        ### Subproblem 2
+        candidate_solutions = find_candidate_solutions(model, sampled_game, equilibrium_solver.best_response_optimizer, timer)
+        check_time(timer)
+
+        if !isempty(candidate_solutions)
+            # Increase sample
+            for candidate_solution in candidate_solutions
+                for strat in candidate_solution
+                    player_id = strat.id
+                    push!(sampled_game.strategy_sample[player_id], strat)
+                    update_sampled_game!(sampled_game, player_id, model, timer)
+                    check_time(timer)
+                end
+            end
+            continue
+
+        end
+
+        # Terminate
+        equilibrium_solver.termination_status = IPG.ENUMERATION_COMPLETE
+        return nothing
     end
 
-
+    equilibrium_solver.termination_status = IPG.ITERATION_LIMIT
     return nothing
 end
 end
