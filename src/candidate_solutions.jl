@@ -37,7 +37,10 @@ function find_candidate_solutions(model::IPG.IPGModel, sampled_game::Union{Polym
             end
     
             candidate_solution = get_candidate_solution(model, variable_maps)
-            push!(candidate_solutions, candidate_solution)
+            
+            if is_new_candidate(candidate_solution, sampled_game) # 22
+                push!(candidate_solutions, candidate_solution)
+            end
     """
             add_exclusion_cut!(
                 new_model,
@@ -269,4 +272,33 @@ function get_candidate_solution(model::IPG.IPGModel, variable_maps::Vector{Dict{
     end
 
     return profile
+end
+
+function is_new_candidate(candidate_solution::IPG.Profile, sampled_game::Union{PolymatrixSampledGame, NormalFormSampledGame})::Bool
+    for strategy in candidate_solution
+        player_id = strategy.id
+        strategy_has_been_sampled = false
+
+        for sampled_strategy in sampled_game.strategy_sample[player_id]
+            same_strategy = true 
+
+            for (var, val) in strategy.variable_values
+                if !isapprox(val, sampled_strategy.variable_values[var]; atol = 1e-6) 
+                    same_strategy = false
+                    break
+                end
+            end
+
+            if same_strategy
+                strategy_has_been_sampled = true
+                break
+            end
+        end
+
+        if !strategy_has_been_sampled
+            return true
+        end
+    end
+
+    return false
 end
