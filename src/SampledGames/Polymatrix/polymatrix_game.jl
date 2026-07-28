@@ -62,7 +62,7 @@ end
 
 function get_polymatrix(model::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::Polymatrix
     if length(model.players) < 2
-        model.optimizer.termination_status = IPG.INVALID_MODEL
+        model.equilibrium_solver.termination_status = IPG.INVALID_MODEL
         error("An IPG must have atleast 2 players")
     elseif length(model.players) == 2
         return get_polymatrix_twoplayers(model, strategies, timer)

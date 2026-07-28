@@ -16,7 +16,7 @@ end
 function get_normal_form(model::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer)::NGame
     num_players = length(model.players)
     if num_players < 2
-        model.optimizer.termination_status = IPG.INVALID_MODEL
+        model.equilibrium_solver.termination_status = IPG.INVALID_MODEL
         error("An IPG must have atleast 2 players")
     end
 
