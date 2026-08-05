@@ -12,7 +12,7 @@ function PolymatrixSampledGame(model::IPG.IPGModel, strategies::Vector{Vector{IP
 end
 
 # TODO: add tests for the function below
-function get_polymatrix_twoplayers(game::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::Polymatrix
+function get_polymatrix_twoplayers(model::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::Polymatrix
     # Initialization
     polymatrix = Polymatrix()
     polymatrix[(1,1)] = zeros(length(strategies[1]), length(strategies[1]))
@@ -24,16 +24,16 @@ function get_polymatrix_twoplayers(game::IPG.IPGModel, strategies::Vector{Vector
         for i2 in eachindex(strategies[2])
             check_time(timer)
             profile = [strategies[1][i1], strategies[2][i2]]
-            polymatrix[(1,2)][i1,i2] = IPG.comparable_payoff_value(game, 1, profile)
-            polymatrix[(2,1)][i2,i1] = IPG.comparable_payoff_value(game, 2, profile)
+            polymatrix[(1,2)][i1,i2] = IPG.comparable_payoff_value(model, 1, profile)
+            polymatrix[(2,1)][i2,i1] = IPG.comparable_payoff_value(model, 2, profile)
         end
     end
 
     return polymatrix
 end
 
-function get_polymatrix_bilateral(game::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::Polymatrix
-    num_players = length(game.players)
+function get_polymatrix_bilateral(model::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::Polymatrix
+    num_players = length(model.players)
     polymatrix = Polymatrix()
 
     # compute utility of each player `p` using the `i_p`-th strategy against player `k`
@@ -45,11 +45,11 @@ function get_polymatrix_bilateral(game::IPG.IPGModel, strategies::Vector{Vector{
 
             if k != p
                 for (i_p, x_p) in enumerate(strategies[p])
-                    self_payoff = compute_self_payoff(game, p, x_p)
+                    self_payoff = compute_self_payoff(model, p, x_p)
                     check_time(timer)
 
                     for (i_k, x_k) in enumerate(strategies[k])
-                        polymatrix[(p,k)][i_p,i_k] = self_payoff / (num_players - 1) + compute_bilateral_payoff(game, p, x_p, x_k)
+                        polymatrix[(p,k)][i_p,i_k] = self_payoff / (num_players - 1) + compute_bilateral_payoff(model, p, x_p, x_k)
                         check_time(timer)
                     end
                 end
@@ -60,29 +60,29 @@ function get_polymatrix_bilateral(game::IPG.IPGModel, strategies::Vector{Vector{
     return polymatrix
 end
 
-function get_polymatrix(game::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::Polymatrix
-    if length(game.players) < 2
-        game.optimizer.termination_status = IPG.INVALID_MODEL
+function get_polymatrix(model::IPG.IPGModel, strategies::Vector{Vector{IPG.PureStrategy}}, timer::SGMTimer)::Polymatrix
+    if length(model.players) < 2
+        model.equilibrium_solver.termination_status = IPG.INVALID_MODEL
         error("An IPG must have atleast 2 players")
-    elseif length(game.players) == 2
-        return get_polymatrix_twoplayers(game, strategies, timer)
+    elseif length(model.players) == 2
+        return get_polymatrix_twoplayers(model, strategies, timer)
     else
-        return get_polymatrix_bilateral(game, strategies, timer)
+        return get_polymatrix_bilateral(model, strategies, timer)
     end
 end
 
-function update_sampled_game!(sampled_game::PolymatrixSampledGame, p::Int, game::IPG.IPGModel, timer::SGMTimer)::Nothing
+function update_sampled_game!(sampled_game::PolymatrixSampledGame, p::Int, model::IPG.IPGModel, timer::SGMTimer)::Nothing
     polymatrix = sampled_game.polymatrix
     strategies = sampled_game.strategy_sample
 
-    other_players = deleteat!(collect(1:length(game.players)), p) # Other players' ids 
+    other_players = deleteat!(collect(1:length(model.players)), p) # Other players' ids 
 
     old_num_strats_p = size(polymatrix[(p, other_players[1])], 1) # Number of player p's strategies already stored in polymatrix
 
     sub_strategies = copy(strategies)
     sub_strategies[p] = strategies[p][(old_num_strats_p + 1):end]
     check_time(timer)
-    new_strats_polymatrix = get_polymatrix(game, sub_strategies, timer)
+    new_strats_polymatrix = get_polymatrix(model, sub_strategies, timer)
 
     for k in other_players
         check_time(timer)
@@ -105,8 +105,8 @@ function negative_polymatrix_preprocessing!(polymatrix::Polymatrix)::Polymatrix
     return polymatrix
 end
 
-function compute_self_payoff(game::IPG.IPGModel, player_id::Int, strategy::IPG.PureStrategy)::Float64
-    payoff_function = JuMP.objective_function(game.players[player_id], JuMP.QuadExpr)
+function compute_self_payoff(model::IPG.IPGModel, player_id::Int, strategy::IPG.PureStrategy)::Float64
+    payoff_function = JuMP.objective_function(model.players[player_id], JuMP.QuadExpr)
 
     variable_values = strategy.variable_values # Should only contain variables owned by this player
 
@@ -126,15 +126,15 @@ function compute_self_payoff(game::IPG.IPGModel, player_id::Int, strategy::IPG.P
         end
     end
 
-    return IPG.comparable_payoff_value(game, player_id, payoff_value)
+    return IPG.comparable_payoff_value(model, player_id, payoff_value)
 end
 
-function compute_bilateral_payoff(game::IPG.IPGModel, player_id::Int, player_strategy::IPG.PureStrategy, other_strategy::IPG.PureStrategy)::Float64
-    payoff_function = JuMP.objective_function(game.players[player_id], JuMP.QuadExpr)
+function compute_bilateral_payoff(model::IPG.IPGModel, player_id::Int, player_strategy::IPG.PureStrategy, other_strategy::IPG.PureStrategy)::Float64
+    payoff_function = JuMP.objective_function(model.players[player_id], JuMP.QuadExpr)
 
     player_variable_values = player_strategy.variable_values # Should only contain variables owned by the player
 
-    var_to_param_map = game.var_to_param_maps[player_id]
+    var_to_param_map = model.var_to_param_maps[player_id]
     other_parameter_values = Dict{JuMP.VariableRef,Float64}()
     for (other_variable, value) in other_strategy.variable_values
         if haskey(var_to_param_map, other_variable)
@@ -163,5 +163,5 @@ function compute_bilateral_payoff(game::IPG.IPGModel, player_id::Int, player_str
         end
     end
 
-    return IPG.comparable_payoff_value(game, player_id, payoff_value)
+    return IPG.comparable_payoff_value(model, player_id, payoff_value)
 end
