@@ -2,6 +2,8 @@
 function find_candidate_solutions(model::IPG.IPGModel, sampled_game::Union{PolymatrixSampledGame, NormalFormSampledGame}, optimizer_factory, timer::SGMTimer)::Vector{IPG.Profile}
     candidate_solutions = Vector{IPG.Profile}()
 
+    check_variables_binary(model) # Current implementation of eSGM only supports binary variables
+
     for player in 1:length(model.players)
         new_model, variable_maps = copy_player_models(model, timer)
 
@@ -9,7 +11,7 @@ function find_candidate_solutions(model::IPG.IPGModel, sampled_game::Union{Polym
 
         JuMP.set_silent(new_model)
 
-        payoff = copy_player_payoff(model, player, variable_maps, timer)
+        payoff = copy_player_payoff(model, player, variable_maps, timer) 
         check_time(timer)
 
         if JuMP.objective_sense(model.players[player]) == JuMP.MAX_SENSE
@@ -23,34 +25,23 @@ function find_candidate_solutions(model::IPG.IPGModel, sampled_game::Union{Polym
         add_constraints_21!(model, new_model, sampled_game, variable_maps, timer)
         check_time(timer)
 
-        # TODO add all the other constraints
-
-"""
         while true
-            """
             if isfinite(remaining_time(timer)) JuMP.set_time_limit_sec(new_model, remaining_time(timer)) end
 
             JuMP.optimize!(new_model)
     
-            if !JuMP.is_solved_and_feasible(new_model)
+            if !JuMP.is_solved_and_feasible(new_model) # No solution
                 break
             end
     
             candidate_solution = get_candidate_solution(model, variable_maps)
             
-            if is_new_candidate(candidate_solution, sampled_game) # 22
+            if is_new_candidate(candidate_solution, sampled_game, timer) # 22
                 push!(candidate_solutions, candidate_solution)
             end
-    """
-            add_exclusion_cut!(
-                new_model,
-                model,
-                variable_maps,
-                candidate_solution,
-            )
-              
-        end"""
 
+            add_cuts!(model, new_model, player, variable_maps, candidate_solution, timer) # 24 and 25
+        end
     end
 
     return candidate_solutions
@@ -274,8 +265,9 @@ function get_candidate_solution(model::IPG.IPGModel, variable_maps::Vector{Dict{
     return profile
 end
 
-function is_new_candidate(candidate_solution::IPG.Profile, sampled_game::Union{PolymatrixSampledGame, NormalFormSampledGame})::Bool
+function is_new_candidate(candidate_solution::IPG.Profile, sampled_game::Union{PolymatrixSampledGame, NormalFormSampledGame}, timer::SGMTimer)::Bool
     for strategy in candidate_solution
+        check_time(timer)
         player_id = strategy.id
         strategy_has_been_sampled = false
 
@@ -283,6 +275,7 @@ function is_new_candidate(candidate_solution::IPG.Profile, sampled_game::Union{P
             same_strategy = true 
 
             for (var, val) in strategy.variable_values
+                check_time(timer)
                 if !isapprox(val, sampled_strategy.variable_values[var]; atol = 1e-6) 
                     same_strategy = false
                     break
@@ -301,4 +294,66 @@ function is_new_candidate(candidate_solution::IPG.Profile, sampled_game::Union{P
     end
 
     return false
+end
+
+function add_cuts!(model::IPG.IPGModel, new_model::JuMP.Model, player_id::Int, variable_maps::Vector{Dict{JuMP.VariableRef, JuMP.VariableRef}}, candidate_solution::IPG.Profile, timer::SGMTimer)::Nothing
+    # Equation 24 cuts
+    cut_24 = 0.0
+
+    for p in 1:length(model.players)
+        if p == player_id
+            continue
+        end
+
+        for og_var in IPG.get_player_variables(model.players[p])
+            check_time(timer)
+
+            if !JuMP.is_binary(og_var)
+                throw(ArgumentError("eSGM currently only supports binary variables. $(JuMP.name(og_var)) is not binary and must be reformulated into a binary expansion beforehand."))
+            end
+
+            val = candidate_solution[p].variable_values[og_var]
+            var = variable_maps[p][og_var]
+
+            if isapprox(val, 0.0; atol = 1e-6)
+                cut_24 += var
+            elseif isapprox(val, 1.0; atol = 1e-6)
+                cut_24 += 1 - var
+            else 
+                throw(ArgumentError("eSGM currently only supports binary variables. $(JuMP.name(og_var)) is not binary and must be reformulated into a binary expansion beforehand."))
+            end
+        end
+    end
+
+    JuMP.@constraint(new_model, cut_24 >= 1) # No-good cut
+
+    # Equation 25 cuts
+    for p in 1:length(model.players)
+        check_time(timer)
+
+        candidate_payoff = copy_player_payoff(model, p, variable_maps, timer)
+        candidate_payoff_with_p_solution_strategy = copy_player_payoff(model, p, variable_maps, timer; strategy = candidate_solution[p])
+
+        if JuMP.objective_sense(model.players[p]) == JuMP.MAX_SENSE
+            JuMP.@constraint(new_model, candidate_payoff >= candidate_payoff_with_p_solution_strategy)
+        elseif JuMP.objective_sense(model.players[p]) == JuMP.MIN_SENSE
+            JuMP.@constraint(new_model, candidate_payoff <= candidate_payoff_with_p_solution_strategy)
+        else
+            throw(ArgumentError("Payoff sense must be max or min"))
+        end
+    end
+
+    return nothing
+end
+
+function check_variables_binary(model::IPG.IPGModel)::Nothing
+    for player in 1:length(model.players)
+        for variable in IPG.get_player_variables(model.players[player])
+            if !JuMP.is_binary(variable)
+                throw(ArgumentError("eSGM currently only supports binary variables. $(JuMP.name(variable)) is not binary and must be reformulated into a binary expansion beforehand."))
+            end
+        end
+    end
+
+    return nothing
 end
