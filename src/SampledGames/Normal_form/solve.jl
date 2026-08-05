@@ -1,7 +1,7 @@
 function solve_normal_form(sampled_game::NormalFormSampledGame, timer::SGMTimer)::IPG.Profile
     check_time(timer)
 
-    sol = compute_nash_equilibria(sampled_game.nGame, 1, remaining_time(timer))
+    sol = compute_nash_equilibria(sampled_game.nGame, remaining_time(timer))
     check_time(timer)
     multiplayer_eq = sol[3]
 
