@@ -14,8 +14,8 @@ NormalGames = "4dc104ef-1e0c-4a09-93ea-14ddc8e86204"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [sources]
-IPG = {url = "https://github.com/maxined2/IPG.jl.git"}
-NormalGames = {rev = "optimizer-agnosticism", url = "https://github.com/mxmmargarida/Normal-form-games"}
+IPG = {rev = "main", url = "https://github.com/maxined2/IPG.jl.git"}
+NormalGames = {rev = "main", url = "https://github.com/mxmmargarida/Normal-form-games"}
 
 [compat]
 Gurobi = "1.9"
