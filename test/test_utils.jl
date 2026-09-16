@@ -1,6 +1,17 @@
 using SGM
 using TestItems
 
+@testsnippet Gurobi begin
+    using Gurobi
+
+    a = 0.1
+    E_true = 1e-6
+    E_SGM = (1 - a) * E_true
+    E_MIP = a * E_true
+
+    gurobi_optimizer = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP, "Threads" => 1, "Seed" => 1)
+end
+
 @testsnippet Utilities begin
     using JuMP
     using IPG

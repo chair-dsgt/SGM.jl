@@ -6,18 +6,8 @@ include("test_utils.jl")
     @test SGM isa Module
 end
 
-@testitem "Example 5.3 two-player game" setup = [Utilities] begin     # From "Computing equilibria for integer programming games"
-    using Gurobi
-    using IPG
-
-    a = 0.1
-    E_true = 1e-6
-    E_SGM = (1 - a) * E_true
-    E_MIP = a * E_true
-
-    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
-
-    game = get_example_two_player_game(equilibrium_solver = SGM.EquilibriumSolver(gurobi))
+@testitem "Example 5.3 two-player game" setup = [Utilities, Gurobi] begin     # From "Computing equilibria for integer programming games"
+    game = get_example_two_player_game(equilibrium_solver = SGM.EquilibriumSolver(gurobi_optimizer))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 2
@@ -80,18 +70,8 @@ end
     @test only(eq[2].probs) ≈ 1.0
 end
 
-@testitem "Example 5.3 two-player game using IPG" setup = [Utilities] begin     # From "Computing equilibria for integer programming games"
-    using Gurobi
-    using IPG
-
-    a = 0.1
-    E_true = 1e-6
-    E_SGM = (1 - a) * E_true
-    E_MIP = a * E_true
-
-    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
-
-    game = get_example_two_player_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(gurobi))
+@testitem "Example 5.3 two-player game using IPG" setup = [Utilities, Gurobi] begin     # From "Computing equilibria for integer programming games"
+    game = get_example_two_player_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(gurobi_optimizer))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 2
@@ -154,18 +134,8 @@ end
     @test only(eq[2].probs) ≈ 1.0
 end
 
-@testitem "Example 5.3 two-player game with named players" setup = [Utilities] begin     # From "Computing equilibria for integer programming games"
-    using Gurobi
-    using IPG
-
-    a = 0.1
-    E_true = 1e-6
-    E_SGM = (1 - a) * E_true
-    E_MIP = a * E_true
-
-    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
-
-    game = get_example_two_player_game_with_names(equilibrium_solver = SGM.EquilibriumSolver(gurobi))
+@testitem "Example 5.3 two-player game with named players" setup = [Utilities, Gurobi] begin     # From "Computing equilibria for integer programming games"
+    game = get_example_two_player_game_with_names(equilibrium_solver = SGM.EquilibriumSolver(gurobi_optimizer))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 2
@@ -239,18 +209,8 @@ end
     @test only(eq[2].probs) ≈ 1.0
 end
 
-@testitem "Rock-paper-scissors game" setup = [Utilities] begin
-    using Gurobi
-    using IPG
-
-    a = 0.1
-    E_true = 1e-6
-    E_SGM = (1 - a) * E_true
-    E_MIP = a * E_true
-
-    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
-
-    game = get_rock_paper_scissors_game(equilibrium_solver = SGM.EquilibriumSolver(gurobi))
+@testitem "Rock-paper-scissors game" setup = [Utilities, Gurobi] begin
+    game = get_rock_paper_scissors_game(equilibrium_solver = SGM.EquilibriumSolver(gurobi_optimizer))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 2
@@ -311,18 +271,8 @@ end
     @test eq[2].probs[3] ≈ 1/3
 end
 
-@testitem "Rock-paper-scissors game using IPG" setup = [Utilities] begin
-    using Gurobi
-    using IPG
-
-    a = 0.1
-    E_true = 1e-6
-    E_SGM = (1 - a) * E_true
-    E_MIP = a * E_true
-
-    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
-
-    game = get_rock_paper_scissors_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(gurobi))
+@testitem "Rock-paper-scissors game using IPG" setup = [Utilities, Gurobi] begin
+    game = get_rock_paper_scissors_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(gurobi_optimizer))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 2
@@ -383,18 +333,8 @@ end
     @test eq[2].probs[3] ≈ 1/3
 end
 
-@testitem "Example three-player game" setup = [Utilities] begin     # From "When do Mixed-Integer Games Admit Rational Equilibria?"
-    using Gurobi
-    using IPG
-
-    a = 0.1
-    E_true = 1e-3
-    E_SGM = (1 - a) * E_true
-    E_MIP = a * E_true
-
-    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
-
-    game = get_example_three_player_game(equilibrium_solver = SGM.EquilibriumSolver(gurobi))
+@testitem "Example three-player game" setup = [Utilities, Gurobi] begin     # From "When do Mixed-Integer Games Admit Rational Equilibria?"
+    game = get_example_three_player_game(equilibrium_solver = SGM.EquilibriumSolver(gurobi_optimizer))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 3
@@ -427,18 +367,8 @@ end
     end
 end
 
-@testitem "Example three-player game using IPG" setup = [Utilities] begin     # From "When do Mixed-Integer Games Admit Rational Equilibria?"
-    using Gurobi
-    using IPG
-
-    a = 0.1
-    E_true = 1e-3
-    E_SGM = (1 - a) * E_true
-    E_MIP = a * E_true
-
-    gurobi = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0, "MIPGap" => 0.0, "MIPGapAbs" => E_MIP)
-
-    game = get_example_three_player_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(gurobi))
+@testitem "Example three-player game using IPG" setup = [Utilities, Gurobi] begin     # From "When do Mixed-Integer Games Admit Rational Equilibria?"
+    game = get_example_three_player_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(gurobi_optimizer))
 
     @test game isa IPG.IPGModel
     @test length(game.players) == 3
