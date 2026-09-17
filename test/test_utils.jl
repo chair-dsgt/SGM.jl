@@ -1,6 +1,20 @@
 using SGM
 using TestItems
 
+# SCIP is used by the subroutine tests that need a best-response solve but not
+# the full SGM algorithm. It needs no licence, so those tests run anywhere. The
+# end-to-end solver tests still use Gurobi, as does NormalGames.jl internally.
+@testsnippet SCIPOptimizer begin
+    using JuMP
+    using SCIP
+
+    scip_optimizer = JuMP.optimizer_with_attributes(
+        SCIP.Optimizer,
+        "display/verblevel" => 0,
+        "limits/gap" => 0.0,
+    )
+end
+
 @testsnippet Gurobi begin
     using Gurobi
 

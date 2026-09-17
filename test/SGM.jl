@@ -71,10 +71,8 @@ end
 # strategies. This is the only fixture whose equilibrium has support larger than
 # one, so it is the load-bearing test for the sampled-game solve.
 #
-# It also exercises IPG.best_response on a pure profile whose payoff is bilinear
-# in own x opponent variables. That model keeps parameters in a quadratic
-# objective, which HiGHS rejects, so this coverage cannot move to IPG.jl - see
-# the solver note in IPG.jl/test/best_response.jl.
+# The best_response calls below are here to certify the equilibrium, not to test
+# best_response itself - that is covered directly in IPG.jl/test/best_response.jl.
 @testitem "Rock-paper-scissors game" setup = [Utilities, Gurobi] begin
     game = get_rock_paper_scissors_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(gurobi_optimizer))
 
