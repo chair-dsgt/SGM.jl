@@ -18,11 +18,11 @@ function normalgame_equilibrium_to_profile(normalgame_eq::Vector{Vector{Float64}
 end
 
 "Compute a (mixed) Nash equilibrium for the sampled game using PNS."
-function solve_PNS(sampled_game::PolymatrixSampledGame, timer::SGMTimer)::IPG.Profile
+function solve_PNS(sampled_game::PolymatrixSampledGame, timer::SGMTimer, optimizer_factory)::IPG.Profile
     normal_sampled_game = normal_game(sampled_game)
 
     check_time(timer)
-    _, _, equilibria = NormalGames.NashEquilibriaPNS(normal_sampled_game, false, false, true, remaining_time(timer))
+    _, _, equilibria = NormalGames.NashEquilibriaPNS(normal_sampled_game, optimizer_factory, false, false, true, remaining_time(timer))
     check_time(timer)
 
     equilibrium = equilibria[1]  # take the first Nash equilibrium
@@ -31,29 +31,29 @@ function solve_PNS(sampled_game::PolymatrixSampledGame, timer::SGMTimer)::IPG.Pr
 end
 
 "Compute a (mixed) Nash equilibrium for the sampled game using Formulation 1 (Big-M) of Sandholm et al. (2005)."
-function solve_Sandholm1(sampled_game::PolymatrixSampledGame, timer::SGMTimer)::IPG.Profile
+function solve_Sandholm1(sampled_game::PolymatrixSampledGame, timer::SGMTimer, optimizer_factory)::IPG.Profile
     sampled_game_copy = deepcopy(sampled_game) # to not permanently modify the game for future use
     negative_polymatrix_preprocessing!(sampled_game_copy.polymatrix) # because this method doesn't support polymatrices with negative entries
     check_time(timer)
 
     normal_sampled_game = normal_game(sampled_game_copy)
 
-    _, _, equilibrium, _, _, _, _, _ = NormalGames.NashEquilibria2(normal_sampled_game)
+    _, _, equilibrium, _, _, _, _, _ = NormalGames.NashEquilibria2(normal_sampled_game, optimizer_factory)
     check_time(timer)
 
     return normalgame_equilibrium_to_profile(equilibrium, sampled_game.strategy_sample)
 end
 
 function solve(sampled_game::PolymatrixSampledGame, timer::SGMTimer, optimizer_factory)::IPG.Profile
-    return solve_PNS(sampled_game, timer) # Default value
+    return solve_PNS(sampled_game, timer, optimizer_factory) # Default value
 end
 
 "Compute all (mixed) Nash equilibria for the sampled game using PNS."
-function solve_all(sampled_game::PolymatrixSampledGame, timer::SGMTimer)::Vector{IPG.Profile}
+function solve_all(sampled_game::PolymatrixSampledGame, timer::SGMTimer, optimizer_factory)::Vector{IPG.Profile}
     normal_sampled_game = normal_game(sampled_game)
 
     check_time(timer)
-    _, _, equilibria = NormalGames.NashEquilibriaPNS(normal_sampled_game, true, false, true, remaining_time(timer))
+    _, _, equilibria = NormalGames.NashEquilibriaPNS(normal_sampled_game, optimizer_factory, true, false, true, remaining_time(timer))
     check_time(timer)
 
     equilibrium_profiles = Vector{IPG.Profile}()

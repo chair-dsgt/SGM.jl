@@ -103,8 +103,8 @@ end
 
     sampled_game = SGM.PolymatrixSampledGame(game, strategies, timer)
 
-    equilibrium_PNS = SGM.solve_PNS(sampled_game, timer)
-    equilibrium_Sandholm = SGM.solve_Sandholm1(sampled_game, timer)
+    equilibrium_PNS = SGM.solve_PNS(sampled_game, timer, gurobi_optimizer)
+    equilibrium_Sandholm = SGM.solve_Sandholm1(sampled_game, timer, gurobi_optimizer)
 
     for equilibrium in (equilibrium_PNS, equilibrium_Sandholm)
         @test equilibrium isa IPG.Profile
@@ -119,5 +119,5 @@ end
 
     # solve dispatches to PNS by default.
     # TODO: passing `nothing` as the optimizer factory is a temporary fix
-    @test IPG.value(IPG.strategy(SGM.solve(sampled_game, timer, nothing), 1), x1) ≈ 5.0
+    @test IPG.value(IPG.strategy(SGM.solve(sampled_game, timer, gurobi_optimizer), 1), x1) ≈ 5.0
 end
