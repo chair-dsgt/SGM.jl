@@ -124,7 +124,7 @@ function esgm_search!(equilibrium_solver::EquilibriumSolver, model::IPG.IPGModel
 
     for iter in 1:max_iter
         ### Master problem
-        candidate_equilibria = solve_all(sampled_game, timer)
+        candidate_equilibria = solve_all(sampled_game, timer, equilibrium_solver.sampled_game_optimizer)
 
         check_time(timer)
         append!(equilibrium_solver.candidate_equilibria, candidate_equilibria)
