@@ -44,7 +44,7 @@ function solve_Sandholm1(sampled_game::PolymatrixSampledGame, timer::SGMTimer)::
     return normalgame_equilibrium_to_profile(equilibrium, sampled_game.strategy_sample)
 end
 
-function solve(sampled_game::PolymatrixSampledGame, timer::SGMTimer)::IPG.Profile
+function solve(sampled_game::PolymatrixSampledGame, timer::SGMTimer, optimizer_factory)::IPG.Profile
     return solve_PNS(sampled_game, timer) # Default value
 end
 
