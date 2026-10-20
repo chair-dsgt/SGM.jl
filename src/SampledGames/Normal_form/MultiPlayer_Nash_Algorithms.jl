@@ -1,19 +1,23 @@
-# Function to compute Nash equilibria for a NGame instance
 """
-    compute_nash_equilibria(my_game::NGame; timelimit::Float64=300.0, seed::Int=1)
+    compute_nash_equilibria(my_game::NGame, optimizer_factory,
+                           timelimit::Float64=300.0, error_rel::Float64=0.01,
+                           objective_option::Bool=true)
 
 Compute Nash equilibria for a multi-player normal-form game.
 
 # Arguments
 - `my_game::NGame`: The game instance (see `NGame` struct).
-- `timelimit::Float64=300.0`: (Optional) Time limit for the solver in seconds. Must be a float.
-- `seed::Int=1`: (Optional) Random seed for solver reproducibility.
-- `error_rel::Float64=0.01`: (Optional) relative error.
-- `error_num::Float64=0.01`: (Optional) numerical precision error.
-- `objective_option`: (Optional) whether we maximize the social welfare (true) or no objective (false)
+- `optimizer_factory`: An optimizer constructor or a factory configured with
+  `JuMP.optimizer_with_attributes`.
+- `timelimit::Float64=300.0`: Solver time limit in seconds.
+- `error_rel::Float64=0.01`: Relative margin used to expand utility bounds.
+- `objective_option::Bool=true`: Maximize social welfare when `true`; solve a
+  feasibility problem when `false`.
 
 # Returns
-A tuple containing the objective value, utilities, strategies, and model objects.
+Return `(objective, utilities, strategies, indicators, model, y, u, x, solve_time)`.
+`strategies` and `indicators` contain one vector per player; `y`, `u`, and `x` are
+the corresponding JuMP variable containers.
 """
 function compute_nash_equilibria(my_game::NGame, optimizer_factory, timelimit::Float64=300.0, error_rel::Float64=0.01, objective_option::Bool=true)
     # Start model
