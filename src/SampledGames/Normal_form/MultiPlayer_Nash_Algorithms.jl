@@ -1,5 +1,3 @@
-using Gurobi, Juniper, Ipopt
-
 # Function to compute Nash equilibria for a NGame instance
 """
     compute_nash_equilibria(my_game::NGame; timelimit::Float64=300.0, seed::Int=1)
@@ -17,25 +15,9 @@ Compute Nash equilibria for a multi-player normal-form game.
 # Returns
 A tuple containing the objective value, utilities, strategies, and model objects.
 """
-function compute_nash_equilibria(my_game::NGame, timelimit::Float64=300.0, seed::Int=1, error_rel::Float64=0.01, error_num::Float64=0.01, objective_option::Bool=true)
-    if my_game.n <=3
-        # Start model
-        if Sys.iswindows()
-            # run the one below which prevents that in the log we see multiple verifications of the license
-            env = Gurobi.Env(Dict{String,Any}("OutputFlag"=>1))
-            model = Model(()->Gurobi.Optimizer(env))
-        else
-            # Start model
-            model = Model(Gurobi.Optimizer)
-        end
-        # For reproducibility purposes
-        set_optimizer_attribute(model, "Seed", seed)
-    else
-        println("Using Juniper with Ipopt for games with more than 3 players")
-        optimizer = Juniper.Optimizer
-        nl_solver = optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0) # print_level is level of verbosity
-        model = Model(optimizer_with_attributes(optimizer, "nl_solver"=>nl_solver))
-    end
+function compute_nash_equilibria(my_game::NGame, optimizer_factory, timelimit::Float64=300.0, seed::Int=1, error_rel::Float64=0.01, error_num::Float64=0.01, objective_option::Bool=true)
+    # Start model
+    model = Model(optimizer_factory)
 
     set_silent(model)
     # Enforce time limit

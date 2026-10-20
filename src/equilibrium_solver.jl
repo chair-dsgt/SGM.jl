@@ -1,12 +1,14 @@
 mutable struct EquilibriumSolver <: IPG.EquilibriumSolver
     best_response_optimizer
+    sampled_game_optimizer
     termination_status::IPG.TerminationStatusCode
     equilibrium::Union{Nothing,IPG.Profile}
     equilibria::Vector{IPG.Profile}
     candidate_equilibria::Vector{IPG.Profile}
-    function EquilibriumSolver(best_response_optimizer)
+    function EquilibriumSolver(mip_optimizer)
         return new(
-            best_response_optimizer,
+            mip_optimizer,
+            mip_optimizer,
             IPG.SOLVE_NOT_CALLED,
             nothing,
             IPG.Profile[],
