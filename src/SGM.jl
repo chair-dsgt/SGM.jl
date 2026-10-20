@@ -4,9 +4,6 @@ using JuMP
 using NormalGames
 using Random
 using LinearAlgebra
-using Gurobi
-using Juniper
-using Ipopt
 
 import IPG
 import IPG: search!, get_equilibrium, get_equilibria, get_termination_status, supports_enumeration
@@ -80,7 +77,7 @@ function sgm_search!(equilibrium_solver::EquilibriumSolver, model::IPG.IPGModel,
     payoff_improvements = Vector{Tuple{Int,Float64}}()
     for iter in 1:max_iter
         ### Step 2: Solve sampled game
-        candidate_equilibrium = solve(sampled_game, timer)
+        candidate_equilibrium = solve(sampled_game, timer, equilibrium_solver.sampled_game_optimizer)
         check_time(timer)
         push!(equilibrium_solver.candidate_equilibria, candidate_equilibrium)
     

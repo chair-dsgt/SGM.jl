@@ -1,7 +1,7 @@
-function solve_normal_form(sampled_game::NormalFormSampledGame, timer::SGMTimer)::IPG.Profile
+function solve_normal_form(sampled_game::NormalFormSampledGame, timer::SGMTimer, optimizer_factory)::IPG.Profile
     check_time(timer)
 
-    sol = compute_nash_equilibria(sampled_game.nGame, remaining_time(timer))
+    sol = compute_nash_equilibria(sampled_game.nGame, optimizer_factory, remaining_time(timer))
     check_time(timer)
     multiplayer_eq = sol[3]
 
@@ -16,8 +16,8 @@ function solve_normal_form(sampled_game::NormalFormSampledGame, timer::SGMTimer)
     return profile
 end
 
-function solve(sampled_game::NormalFormSampledGame, timer::SGMTimer)::IPG.Profile
-    return solve_normal_form(sampled_game, timer) 
+function solve(sampled_game::NormalFormSampledGame, timer::SGMTimer, optimizer_factory)::IPG.Profile
+    return solve_normal_form(sampled_game, timer, optimizer_factory) 
 end
 
 function solve_all(sampled_game::NormalFormSampledGame, timer::SGMTimer)::IPG.Profile
