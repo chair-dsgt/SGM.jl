@@ -5,15 +5,21 @@ mutable struct EquilibriumSolver <: IPG.EquilibriumSolver
     equilibrium::Union{Nothing,IPG.Profile}
     equilibria::Vector{IPG.Profile}
     candidate_equilibria::Vector{IPG.Profile}
-    function EquilibriumSolver(mip_optimizer)
+    function EquilibriumSolver(best_response_optimizer, sampled_game_optimizer)
         return new(
-            mip_optimizer,
-            mip_optimizer,
+            best_response_optimizer,
+            sampled_game_optimizer,
             IPG.SOLVE_NOT_CALLED,
             nothing,
             IPG.Profile[],
             IPG.Profile[])
     end
+end
+function EquilibriumSolver(mip_optimizer)
+    return EquilibriumSolver(
+        mip_optimizer,
+        mip_optimizer,
+    )
 end
 
 """
