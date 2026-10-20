@@ -10,7 +10,7 @@ SGM.jl is a Julia implementation of the Sampled Generation Method for solving in
 [T. Crönert, S. Minner, "Equilibrium Identification and Selection in Finite Games". 2022. Operations Research](https://pubsonline.informs.org/doi/10.1287/opre.2022.2413)
 
 ## Requirements
-SGM.jl requires Julia and Gurobi to be installed, as well as a valid Gurobi licence. All Julia package dependencies are automatically downloaded during the installation.
+SGM.jl requires Julia to be installed. All Julia package dependencies are automatically downloaded during the installation.
 
 ## Installation
 ```julia
@@ -19,14 +19,25 @@ Pkg.add(url = "https://github.com/chair-dsgt/SGM.jl.git")
 ```
 
 ## Solver construction
-The SGM solver requires an optimizer for solving the players' best-response problems.
+The SGM solver requires mathematical programming optimizers for solving the players' best-response problems and the sampled games.
 
-For example, Gurobi can be used as the best-response optimizer:
+For example, Gurobi can be used for both:
 ```julia
 using SGM
 using Gurobi
 
 equilibrium_solver = SGM.EquilibriumSolver(Gurobi.Optimizer)
+```
+
+Or SCIP can be used for best-response, while Juniper+Ipopt are used for the sampled games:
+```julia
+using SGM
+using SCIP
+using Juniper, Ipopt
+
+best_response_optimizer = SCIP.Optimizer
+sampled_game_optimizer = optimizer_with_attributes(Juniper.Optimizer, "nl_solver" => Ipopt.Optimizer)
+equilibrium_solver = SGM.EquilibriumSolver(best_response_optimizer, sampled_game_optimizer)
 ```
 
 ## Solver interface
