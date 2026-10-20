@@ -81,11 +81,7 @@ end
 
 # Covers: solve_PNS and solve_Sandholm1 (src/SampledGames/Polymatrix/solve.jl),
 # and normalgame_equilibrium_to_profile via their return value.
-#
-# Needs a Gurobi licence even though neither function takes an optimizer:
-# NormalGames.jl hardcodes `Model(Gurobi.Optimizer)` in the feasibility programs
-# both methods rely on.
-@testitem "Solving polymatrix game" setup = [Utilities, Gurobi] begin
+@testitem "Solving polymatrix game" setup = [Utilities, SCIPOptimizer] begin
     game = get_example_two_player_game_usingIPG()
     x1 = only(IPG.get_player_variables(game.players[1]))
     x2 = only(IPG.get_player_variables(game.players[2]))
@@ -103,8 +99,8 @@ end
 
     sampled_game = SGM.PolymatrixSampledGame(game, strategies, timer)
 
-    equilibrium_PNS = SGM.solve_PNS(sampled_game, timer, gurobi_optimizer)
-    equilibrium_Sandholm = SGM.solve_Sandholm1(sampled_game, timer, gurobi_optimizer)
+    equilibrium_PNS = SGM.solve_PNS(sampled_game, timer, scip_optimizer)
+    equilibrium_Sandholm = SGM.solve_Sandholm1(sampled_game, timer, scip_optimizer)
 
     for equilibrium in (equilibrium_PNS, equilibrium_Sandholm)
         @test equilibrium isa IPG.Profile
@@ -118,6 +114,5 @@ end
     @test sampled_game.polymatrix == SGM.get_polymatrix(game, strategies, timer)
 
     # solve dispatches to PNS by default.
-    # TODO: passing `nothing` as the optimizer factory is a temporary fix
-    @test IPG.value(IPG.strategy(SGM.solve(sampled_game, timer, gurobi_optimizer), 1), x1) ≈ 5.0
+    @test IPG.value(IPG.strategy(SGM.solve(sampled_game, timer, scip_optimizer), 1), x1) ≈ 5.0
 end

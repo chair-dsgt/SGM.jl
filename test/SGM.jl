@@ -17,8 +17,8 @@ end
 # Covers: sgm_search! on a continuous quadratic game, including the sequence of
 # candidate equilibria it visits (SGM.EquilibriumSolver.candidate_equilibria is
 # SGM-private state) and the no-profitable-deviation certificate.
-@testitem "Example 5.3 two-player game" setup = [Utilities, Gurobi] begin     # From "Computing equilibria for integer programming games"
-    game = get_example_two_player_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(gurobi_optimizer))
+@testitem "Example 5.3 two-player game" setup = [Utilities, SCIPOptimizer] begin     # From "Computing equilibria for integer programming games"
+    game = get_example_two_player_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(scip_optimizer))
 
     player_1_variables = IPG.get_player_variables(game.players[1])
     player_2_variables = IPG.get_player_variables(game.players[2])
@@ -73,8 +73,8 @@ end
 #
 # The best_response calls below are here to certify the equilibrium, not to test
 # best_response itself - that is covered directly in IPG.jl/test/best_response.jl.
-@testitem "Rock-paper-scissors game" setup = [Utilities, Gurobi] begin
-    game = get_rock_paper_scissors_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(gurobi_optimizer))
+@testitem "Rock-paper-scissors game" setup = [Utilities, SCIPOptimizer] begin
+    game = get_rock_paper_scissors_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(scip_optimizer))
 
     @test IPG.termination_status(game) == IPG.SOLVE_NOT_CALLED
 
@@ -108,8 +108,8 @@ end
 
 # Covers: sgm_search! beyond two players, on a mixed-integer game whose
 # best-response problems are MIQP.
-@testitem "Example three-player game" setup = [Utilities, Gurobi] begin     # From "When do Mixed-Integer Games Admit Rational Equilibria?"
-    game = get_example_three_player_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(gurobi_optimizer))
+@testitem "Example three-player game" setup = [Utilities, SCIPOptimizer] begin     # From "When do Mixed-Integer Games Admit Rational Equilibria?"
+    game = get_example_three_player_game_usingIPG(equilibrium_solver = SGM.EquilibriumSolver(scip_optimizer))
 
     @test IPG.termination_status(game) == IPG.SOLVE_NOT_CALLED
 
