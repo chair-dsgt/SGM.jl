@@ -12,7 +12,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [sources]
 IPG = {path = "../IPG.jl"}
-NormalGames = {rev = "main", url = "https://github.com/mxmmargarida/Normal-form-games"}
+NormalGames = {rev = "v0.2.0", url = "https://github.com/mxmmargarida/Normal-form-games"}
 
 [compat]
 Gurobi = "1.9"
