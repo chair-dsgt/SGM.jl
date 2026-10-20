@@ -15,15 +15,13 @@ Compute Nash equilibria for a multi-player normal-form game.
 # Returns
 A tuple containing the objective value, utilities, strategies, and model objects.
 """
-function compute_nash_equilibria(my_game::NGame, optimizer_factory, timelimit::Float64=300.0, seed::Int=1, error_rel::Float64=0.01, error_num::Float64=0.01, objective_option::Bool=true)
+function compute_nash_equilibria(my_game::NGame, optimizer_factory, timelimit::Float64=300.0, error_rel::Float64=0.01, objective_option::Bool=true)
     # Start model
     model = Model(optimizer_factory)
 
     set_silent(model)
     # Enforce time limit
     set_time_limit_sec(model, timelimit)
-    # Restrict to one thread
-    MOI.set(model, MOI.NumberOfThreads(), 1)
 
     # Minimum and maximum utility of each player
     # For each player i, find the minimum utility across all profiles for that player
