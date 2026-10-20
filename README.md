@@ -1,6 +1,6 @@
 # Sampled Generation Method
 
-[![Build Status](https://github.com/maxined2/SGM.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/maxined2/SGM.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Build Status](https://github.com/chair-dsgt/SGM.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/chair-dsgt/SGM.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 SGM.jl is a Julia implementation of the Sampled Generation Method for solving integer programming games, compatible with the solver interface of the IPG.jl package.
 
@@ -15,7 +15,7 @@ SGM.jl requires Julia and Gurobi to be installed, as well as a valid Gurobi lice
 ## Installation
 ```julia
 import Pkg
-Pkg.add(url = "https://github.com/maxined2/SGM.jl.git")
+Pkg.add(url = "https://github.com/chair-dsgt/SGM.jl.git")
 ```
 
 ## Solver construction
