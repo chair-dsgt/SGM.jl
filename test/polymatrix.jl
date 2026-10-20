@@ -118,5 +118,6 @@ end
     @test sampled_game.polymatrix == SGM.get_polymatrix(game, strategies, timer)
 
     # solve dispatches to PNS by default.
-    @test IPG.value(IPG.strategy(SGM.solve(sampled_game, timer), 1), x1) ≈ 5.0
+    # TODO: passing `nothing` as the optimizer factory is a temporary fix
+    @test IPG.value(IPG.strategy(SGM.solve(sampled_game, timer, nothing), 1), x1) ≈ 5.0
 end
