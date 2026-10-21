@@ -4,6 +4,8 @@
 
 SGM.jl is a Julia implementation of the Sampled Generation Method for solving integer programming games, compatible with the solver interface of the IPG.jl package.
 
+If you would like to use this package in its entirety or parts of it, we ask that you cite us, as well as the associated publications mentioned below. Please use GitHub's citation helper on the right sidebar.
+
 ## Associated publications
 [M. Carvalho, A. Lodi, J. P. Pedroso, "Computing equilibria for integer programming games". 2022. European Journal of Operational Research](https://www.sciencedirect.com/science/article/abs/pii/S0377221722002727?via%3Dihub)
 
